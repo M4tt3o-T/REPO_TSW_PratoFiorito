@@ -1,7 +1,3 @@
-// ==========================================
-// 1. MOTORE DEL GIOCO (Funzioni)
-// ==========================================
-
 // Crea la griglia vuota iniziale
 function generateEmptyGrid(width, height) {
   let grid = [];
@@ -106,6 +102,17 @@ function revealCell(grid, startX, startY) {
   }
 }
 
+// Mette o toglie una bandierina su una cella coperta
+function toggleFlag(grid, x, y) {
+  let cell = grid[y][x];
+  
+  // Non si può mettere una bandierina su una cella già scoperta
+  if (!cell.isRevealed) {
+    // Inverte lo stato: se era false diventa true, se era true diventa false
+    cell.isFlagged = !cell.isFlagged; 
+  }
+}
+
 // Controlla se il giocatore ha vinto
 function checkWin(grid, totalMines) {
   let revealedCount = 0;
@@ -127,123 +134,12 @@ function checkWin(grid, totalMines) {
   return revealedCount === (totalCells - totalMines);
 }
 
-// Funzione di utilità per stampare la griglia nel terminale
-function printGrid(grid) {
-  console.log("\n--- STATO ATTUALE DELLA GRIGLIA ---");
-  for (let y = 0; y < grid.length; y++) {
-    let rowString = "";
-    for (let x = 0; x < grid[y].length; x++) {
-      let cell = grid[y][x];
-      
-      if (!cell.isRevealed) {
-        rowString += "[ ]"; // Cella coperta
-      } else if (cell.isMine) {
-        rowString += "[*]"; // Mina
-      } else if (cell.adjacentMines === 0) {
-        rowString += " . "; // Vuoto
-      } else {
-        rowString += ` ${cell.adjacentMines} `; // Numero
-      }
-    }
-    console.log(rowString);
-  }
-  console.log("-----------------------------------\n");
-}
 
-
-// ==========================================
-// 2. AREA DI TEST INTERATTIVA (Console)
-// ==========================================
-
-const readline = require('readline'); // Importa il modulo nativo di Node.js
-
-// Crea l'interfaccia per leggere e scrivere nel terminale
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
-
-// Configurazione della partita
-const width = 10;
-const height = 10;
-const totalMines = 10;
-let myGrid = generateEmptyGrid(width, height);
-let isFirstClick = true;
-
-console.log(`\n=== BENVENUTO A CAMPO MINATO (${width}x${height}) ===`);
-console.log("Scopo: Scopri tutte le celle vuote senza esplodere.");
-printGrid(myGrid);
-
-// Questa è la funzione ricorsiva (il "Game Loop" asincrono)
-function askForMove() {
-  rl.question('Inserisci le coordinate x e y separate da spazio (es. "5 4") o "q" per uscire: ', (answer) => {
-    
-    // Condizione di uscita
-    if (answer.toLowerCase() === 'q') {
-      console.log("Partita interrotta.");
-      rl.close(); // Chiude il programma
-      return;
-    }
-
-    // Parsing dell'input dell'utente
-    const parts = answer.split(' ');
-    if (parts.length !== 2) {
-      console.log("Errore: Input non valido. Usa il formato 'riga colonna' (es. 3 7).");
-      return askForMove();
-    }
-
-    // NUOVA ASSEGNAZIONE INVERTITA:
-    const y = parseInt(parts[0], 10); // Il primo numero è la RIGA (y)
-    const x = parseInt(parts[1], 10); // Il secondo numero è la COLONNA (x)
-    
-    // Controlla se l'utente ha inserito lettere o numeri fuori dal bordo
-    if (isNaN(x) || isNaN(y) || x < 0 || x >= width || y < 0 || y >= height) {
-      console.log(`Errore: Coordinate fuori dal campo (usa numeri da 0 a ${width - 1} per le colonne e da 0 a ${height - 1} per le righe).`);
-      return askForMove();
-    }
-
-    // --- ESECUZIONE DELLA LOGICA DI GIOCO ---
-
-    // 1. Se è la prima mossa in assoluto, piazza le mine e calcola i numeri
-    if (isFirstClick) {
-      placeMines(myGrid, totalMines, x, y);
-      calculateNumbers(myGrid);
-      isFirstClick = false;
-    }
-
-    // 2. Se la cella è già scoperta, avvisa l'utente
-    if (myGrid[y][x].isRevealed) {
-      console.log("Cella già scoperta! Scegline un'altra.");
-      return askForMove();
-    }
-
-    // 3. Controllo Sconfitta (Hai cliccato una mina!)
-    if (myGrid[y][x].isMine) {
-      myGrid[y][x].isRevealed = true; // Mostra la mina che ti ha ucciso
-      printGrid(myGrid);
-      console.log("\nBOOM! Hai calpestato una mina alle coordinate (" + x + ", " + y + "). GAME OVER!\n");
-      rl.close();
-      return;
-    }
-
-    // 4. Se sei salvo, innesca la scoperta a cascata
-    revealCell(myGrid, x, y);
-
-    // 5. Controllo Vittoria!
-    if (checkWin(myGrid, totalMines)) {
-      printGrid(myGrid); // Stampa la griglia finale
-      console.log("\nCONGRATULAZIONI! Hai ripulito il campo minato! HAI VINTO!\n");
-      rl.close(); // Chiude il gioco
-      return;
-    }
-
-    // Stampa la nuova griglia aggiornata (se la partita continua)
-    printGrid(myGrid);
-
-    // Rimette il server in ascolto per la mossa successiva
-    askForMove();
-  });
-}
-
-// Avvia il loop di gioco!
-askForMove();
+module.exports = {
+  generateEmptyGrid,
+  placeMines,
+  calculateNumbers,
+  revealCell,
+  toggleFlag,
+  checkWin
+};
