@@ -1,11 +1,20 @@
-<script setup></script>
+<script setup>
+import Header from '@/components/Header.vue'
+import {skin} from '@/skin.js'
+</script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+    <Header />
+  <main>
+    <div id="sfondo">
+      <RouterView />
+    </div>
+  </main>
 </template>
 
-<style scoped></style>
+<style>
+  #sfondo{
+  --bg-color: v-bind('skin.temaPrincipale');
+  --bg-pattern: v-bind('skin.sfondoURL');
+}
+</style>
