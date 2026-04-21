@@ -1,12 +1,12 @@
 <script setup>
-  import {skin} from "../skin"
+  import {skin} from "../ambiente"
 </script>
 
 <template>
   <div id="main-header">
     MineSweepMMO
     <div>
-      ICONA Nome profilo
+      {{skin.icona}} Nome profilo
       <button>LOG OUT</button>
     </div>
   </div>
@@ -14,14 +14,14 @@
 
 <style scoped>
 button{
-  padding:1.5rem;
-  font-size:1.5rem
+  padding:1rem;
+  font-size:18px
 }
   #main-header{
     display: flex;
     justify-content: space-between;
     align-items:center;
-    padding:2.5vh;
+    padding:1%;
     font-size: 2.5vh;
     background-color: v-bind('skin.temaPrincipale');
     transition: background-color 0.3s ease;

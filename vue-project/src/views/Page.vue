@@ -1,11 +1,17 @@
 <script setup>
-  import {skin} from "../skin.js";
+  import {skin} from "../ambiente.js";
+  import { useRouter } from 'vue-router';
+  const router = useRouter();
+
+  const VaiPartita=()=>{
+    router.push("/partita")
+  }
 </script>
 
 <template>
   <div id="main">
     <div id="menu">
-      <button>Gioca</button>
+      <button @click="VaiPartita">Gioca</button>
       <button>Inventario</button>
       <button>Shop</button>
       <button>Obiettivi</button>
@@ -20,15 +26,15 @@
     flex-direction: column;
     justify-content: center;
     padding-top:4rem;
-    width:42dvw;
-    height:75dvh;
+    width:48%;
+    height:70%;
     background-color: v-bind("skin.temaPrincipale");
   }
   button{
     font-size:2rem;
-    padding-bottom:1rem;
-    padding-top:1rem;
-    margin:2.4rem;
+    padding-bottom:1%;
+    padding-top:1%;
+    margin:1.7rem;
     margin-left:10%;
     margin-right:10%;
   }

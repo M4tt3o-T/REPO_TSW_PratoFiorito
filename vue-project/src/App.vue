@@ -1,6 +1,6 @@
 <script setup>
 import Header from '@/components/Header.vue'
-import {skin} from '@/skin.js'
+import {skin} from '@/ambiente.js'
 </script>
 
 <template>
