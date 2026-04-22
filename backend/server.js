@@ -23,29 +23,44 @@ const activeGames = {};
 io.on('connection', (socket) => {
   console.log(`Nuovo giocatore connesso! ID: ${socket.id}`);
 
-  // 1. L'utente chiede di unirsi a una partita
+  // 1. L'utente chiede di entrare/creare una partita
   socket.on('unisciti_partita', (dati) => {
-    const { idPartita, username } = dati;
+    const { idPartita, username, azione } = dati;
     
-    // Iscriviamo il socket a una "stanza" specifica di Socket.io
+    // CASO A: L'utente vuole unirsi a una partita
+    if (azione === 'unisciti') {
+      if (!activeGames[idPartita]) {
+        // La stanza non esiste! Lo cacciamo.
+        socket.emit('errore_accesso', 'Errore: La stanza ' + idPartita + ' non esiste o è già terminata.');
+        return; // Interrompiamo tutto, non lo facciamo entrare
+      }
+    } 
+    // CASO B: L'utente vuole CREARE una nuova partita
+    else if (azione === 'crea') {
+      if (!activeGames[idPartita]) {
+        // Estraiamo i numeri arrivati dal frontend (o usiamo 10 come sicurezza)
+        const size = parseInt(dati.dimensione) || 10;
+        const perc = parseInt(dati.difficolta) || 10;
+        
+        // Calcoliamo quante mine piazzare fisicamente (Arrotondato per difetto)
+        const mineTotali = Math.floor((size * size) * (perc / 100));
+
+        // Creiamo una nuova partita con le impostazioni desiderate
+        activeGames[idPartita] = {
+          grid: gameLogic.generateEmptyGrid(size, size),
+          totalMines: mineTotali,
+          isFirstClick: true,
+          giocatori: []
+        };
+      }
+    }
+
+    // Se i controlli sono passati, lo facciamo entrare nella stanza
     socket.join(idPartita);
     console.log(`${username} è entrato nella partita ${idPartita}`);
-
-    // Se la partita non esiste in memoria, la inizializziamo (es. 10x10 con 10 mine)
-    if (!activeGames[idPartita]) {
-      activeGames[idPartita] = {
-        grid: gameLogic.generateEmptyGrid(10, 10),
-        totalMines: 10,
-        isFirstClick: true,
-        giocatori: []
-      };
-    }
     
-    // Aggiungiamo il giocatore alla lista e avvisiamo tutti gli altri nella stanza
     activeGames[idPartita].giocatori.push(username);
     io.to(idPartita).emit('messaggio_sistema', `${username} si è unito alla partita!`);
-    
-    // Inviamo a chi si è appena connesso lo stato attuale della griglia
     socket.emit('aggiorna_griglia', activeGames[idPartita].grid);
   });
 
@@ -70,7 +85,8 @@ io.on('connection', (socket) => {
     } else if (azione === 'scopri') {
       // Ha cliccato una mina?
       if (partita.grid[y][x].isMine) {
-        partita.grid[y][x].isRevealed = true; // Svela la mina fatale
+        // Sveliamo tutte le mine sulla griglia
+        gameLogic.revealAllMines(partita.grid);
         // Avvisiamo tutti che la partita è finita male
         io.to(idPartita).emit('partita_terminata', { esito: 'sconfitta', griglia: partita.grid });
         delete activeGames[idPartita]; // Eliminiamo la partita dalla RAM

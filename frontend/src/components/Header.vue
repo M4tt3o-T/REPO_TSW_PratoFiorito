@@ -4,7 +4,7 @@
 
 <template>
   <div id="main-header">
-    MineSweepMMO
+    MineSweeperMMO
     <div>
       {{skin.icona}} Nome profilo
       <button>LOG OUT</button>

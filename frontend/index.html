@@ -1,106 +1,13 @@
 <!DOCTYPE html>
-<html lang="it">
-<head>
+<html lang="">
+  <head>
     <meta charset="UTF-8">
-    <title>Debug Campo Minato Multiplayer</title>
-    <script src="/socket.io/socket.io.js"></script>
-</head>
-<body>
-    <h1>Test Connessione Socket.io</h1>
-    <button id="btn-unisciti">Unisciti alla Partita di Test '123'</button>
-    
-    <h3>Console di Debug:</h3>
-    <div id="output" style="font-family: monospace; border: 1px solid #333; padding: 10px; height: 300px; overflow-y: auto; background-color: #f4f4f4;">
-        </div>
-
-    <script>
-        const socket = io();
-        const outputDiv = document.getElementById('output');
-        let myIdPartita = '123'; // Hardcodato per il test
-
-        function log(messaggio) {
-            const p = document.createElement('p');
-            p.textContent = `[${new Date().toLocaleTimeString()}] ${messaggio}`;
-            outputDiv.appendChild(p);
-            outputDiv.scrollTop = outputDiv.scrollHeight; // Auto-scroll in basso
-        }
-
-        // Quando riceviamo la griglia, la disegniamo
-        socket.on('aggiorna_griglia', (griglia) => {
-            disegnaGriglia(griglia);
-        });
-
-        // Eventi di Game Over
-        socket.on('partita_terminata', (dati) => {
-            disegnaGriglia(dati.griglia); // Disegna l'ultimo frame
-            if (dati.esito === 'vittoria') {
-                alert("🎉 HAI VINTO! Il server ha distrutto la stanza.");
-                log("🏆 Partita vinta!");
-            } else {
-                alert("💥 BOOM! Hai perso. Il server ha distrutto la stanza.");
-                log("💀 Partita persa.");
-            }
-        });
-
-        // Il motore di rendering
-        function disegnaGriglia(griglia) {
-            // Cerchiamo un div chiamato "tabellone", se non c'è lo creiamo
-            let tabellone = document.getElementById('tabellone');
-            if (!tabellone) {
-                tabellone = document.createElement('div');
-                tabellone.id = 'tabellone';
-                tabellone.style.marginTop = '20px';
-                document.body.appendChild(tabellone);
-            }
-            
-            tabellone.innerHTML = ''; // Svuotiamo la griglia vecchia
-
-            // Disegniamo la matrice
-            for (let y = 0; y < griglia.length; y++) {
-                let rigaDiv = document.createElement('div');
-                for (let x = 0; x < griglia[y].length; x++) {
-                    let cella = griglia[y][x];
-                    let btn = document.createElement('button');
-                    btn.style.width = '30px';
-                    btn.style.height = '30px';
-                    btn.style.margin = '1px';
-                    btn.style.fontWeight = 'bold';
-
-                    // Logica visiva
-                    if (!cella.isRevealed) {
-                        btn.textContent = cella.isFlagged ? '🚩' : '';
-                        btn.style.backgroundColor = '#ccc';
-                    } else if (cella.isMine) {
-                        btn.textContent = '💣';
-                        btn.style.backgroundColor = 'red';
-                    } else {
-                        btn.textContent = cella.adjacentMines > 0 ? cella.adjacentMines : '';
-                        btn.style.backgroundColor = '#fff';
-                    }
-
-                    // Click sinistro -> Scopri
-                    btn.addEventListener('click', () => {
-                        socket.emit('mossa_utente', { idPartita: myIdPartita, x: x, y: y, azione: 'scopri' });
-                    });
-
-                    // Click destro -> Bandierina
-                    btn.addEventListener('contextmenu', (e) => {
-                        e.preventDefault();
-                        socket.emit('mossa_utente', { idPartita: myIdPartita, x: x, y: y, azione: 'bandierina' });
-                    });
-
-                    rigaDiv.appendChild(btn);
-                }
-                tabellone.appendChild(rigaDiv);
-            }
-        }
-
-        // Avvio della connessione al click del bottone
-        document.getElementById('btn-unisciti').addEventListener('click', () => {
-            const nomeUtente = 'Tester_' + Math.floor(Math.random() * 100);
-            log(`🟡 Connessione come ${nomeUtente}...`);
-            socket.emit('unisciti_partita', { idPartita: myIdPartita, username: nomeUtente });
-        });
-    </script>
-</body>
+    <link rel="icon" href="/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vite App</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
 </html>
