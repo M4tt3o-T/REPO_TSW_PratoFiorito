@@ -50,7 +50,8 @@ io.on('connection', (socket) => {
           grid: gameLogic.generateEmptyGrid(size, size),
           totalMines: mineTotali,
           isFirstClick: true,
-          giocatori: []
+          giocatori: [],
+          messaggi: []
         };
       }
     }
@@ -62,6 +63,8 @@ io.on('connection', (socket) => {
     activeGames[idPartita].giocatori.push(username);
     io.to(idPartita).emit('messaggio_sistema', `${username} si è unito alla partita!`);
     socket.emit('aggiorna_griglia', activeGames[idPartita].grid);
+    // Invia lo storico della chat al nuovo arrivato
+    socket.emit('storico_chat', activeGames[idPartita].messaggi);
   });
 
   // 2. Il client invia una mossa
@@ -106,6 +109,26 @@ io.on('connection', (socket) => {
 
     // D. Se il gioco continua, invia la griglia aggiornata a tutta la stanza
     io.to(idPartita).emit('aggiorna_griglia', partita.grid);
+  });
+
+  // Gestione della Chat
+  socket.on('invia_messaggio_chat', (dati) => {
+    const { idPartita, username, testo } = dati;
+    
+    if (activeGames[idPartita]) {
+      // Creiamo l'oggetto messaggio (proprio come fosse una riga del database)
+      const nuovoMessaggio = {
+        autore: username,
+        testo: testo,
+        ora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) // Es. "14:30"
+      };
+
+      // 1. Lo salviamo nel placeholder in RAM
+      activeGames[idPartita].messaggi.push(nuovoMessaggio);
+
+      // 2. Lo spediamo a tutti i presenti nella stanza (compreso chi lo ha inviato)
+      io.to(idPartita).emit('nuovo_messaggio_chat', nuovoMessaggio);
+    }
   });
 
   // Gestione della disconnessione

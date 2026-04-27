@@ -30,6 +30,26 @@ const caricamento = ref(true);
 // Determina se il click sinistro del mouse deve scoprire la cella o mettere una bandierina
 const modalitaBandierina = ref(false);
 
+const chatAperta = ref(false);
+const storicoChat = ref([]);
+const nuovoMessaggio = ref("");
+const notificheChat = ref(0); // Contatore messaggi non letti
+
+// Il nome del giocatore (temporaneo)
+const nomeGiocatore = "Giocatore_" + Math.floor(Math.random() * 100);
+
+// Funzione per inviare il messaggio:
+const inviaMessaggio = () => {
+  if (nuovoMessaggio.value.trim() !== "") {
+    socket.emit('invia_messaggio_chat', {
+      idPartita: idStanza,
+      username: nomeGiocatore,
+      testo: nuovoMessaggio.value
+    });
+    nuovoMessaggio.value = ""; // Svuota l'input dopo l'invio
+  }
+};
+
 // Ciclo di vita all'avvio del componente
 onMounted(() => {
   // 1. Apriamo il canale di comunicazione con il server Node.js
@@ -38,7 +58,7 @@ onMounted(() => {
   // 2. Invia la richiesta per entrare (o creare) la stanza
   socket.emit('unisciti_partita', { 
     idPartita: idStanza, 
-    username: "Giocatore_" + Math.floor(Math.random() * 100), // Nome temporaneo
+    username: nomeGiocatore,
     azione: azioneRichiesta,
     dimensione: parametroDim,
     difficolta: parametroDiff
@@ -70,7 +90,43 @@ onMounted(() => {
       router.push('/'); // A fine partita, si torna alla lobby
     }, 500); 
   });
+
+  socket.on('storico_chat', (messaggiPassati) => {
+    storicoChat.value = messaggiPassati;
+  });
+
+  socket.on('nuovo_messaggio_chat', (messaggio) => {
+    storicoChat.value.push(messaggio);
+  });
+
+  // Ascolta lo storico quando si entra
+  socket.on('storico_chat', (messaggiPassati) => {
+    storicoChat.value = messaggiPassati;
+  });
+
+  socket.off('nuovo_messaggio_chat'); // Uccide eventuali cloni
+  // Ricezione di un singolo nuovo messaggio
+  socket.on('nuovo_messaggio_chat', (messaggio) => {
+    storicoChat.value.push(messaggio);
+    
+    // Se la chat è chiusa, incrementiamo il pallino delle notifiche
+    if (!chatAperta.value) {
+      notificheChat.value++;
+    }
+
+    // Auto-scroll verso il basso
+    setTimeout(() => {
+      const area = document.querySelector('.area-messaggi');
+      if (area) area.scrollTop = area.scrollHeight;
+    }, 50);
+  });
 });
+
+// Resettiamo le notifiche quando si apre la chat
+const apriChat = () => {
+  chatAperta.value = true;
+  notificheChat.value = 0;
+};
 
 // Ciclo di vita alla chiusura del componente
 onUnmounted(() => {
@@ -79,6 +135,8 @@ onUnmounted(() => {
   socket.off('aggiorna_griglia');
   socket.off('errore_accesso');
   socket.off('partita_terminata');
+  socket.off('storico_chat');
+  socket.off('nuovo_messaggio_chat');
 });
 
 //Funzioni di interazione con l'utente
@@ -133,8 +191,34 @@ const mettiBandierina = (x, y) => {
       </div>
     </div>
 
-    <div id="chat">
-      💬
+    <button id="btn-chat" @click="chatAperta = !chatAperta">
+      💬 Chat
+      <span v-if="notificheChat > 0" class="badge-notifica">{{ notificheChat }}</span>
+    </button>
+
+    <div id="sidebar-chat" :class="{ 'aperta': chatAperta }">
+      <div class="header-chat">
+        <h3>Chat Stanza {{ idStanza }}</h3>
+        <button @click="chatAperta = false">X</button>
+      </div>
+      
+      <div class="area-messaggi">
+        <div v-for="(msg, index) in storicoChat" :key="index" class="messaggio">
+          <span class="ora">[{{ msg.ora }}]</span> 
+          <strong :class="{ 'mio-messaggio': msg.autore === nomeGiocatore }">{{ msg.autore }}:</strong> 
+          {{ msg.testo }}
+        </div>
+      </div>
+
+      <div class="input-chat">
+        <input 
+          v-model="nuovoMessaggio" 
+          type="text" 
+          placeholder="Scrivi qui..." 
+          @keyup.enter="inviaMessaggio"
+        />
+        <button @click="inviaMessaggio">Invia</button>
+      </div>
     </div>
 
   </div>
@@ -211,5 +295,95 @@ const mettiBandierina = (x, y) => {
 
 .cella:hover {
   filter: brightness(1.1); /* Illumina leggermente la cella al passaggio del mouse */
+}
+
+/* Pulsante per aprire la chat */
+#btn-chat {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 15px 20px;
+  font-size: 1.2rem;
+  background-color: #333;
+  color: white;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  z-index: 99;
+}
+
+/* La barra laterale */
+#sidebar-chat {
+  position: fixed;
+  top: 0;
+  right: -350px; /* Nascosta fuori dallo schermo di default */
+  width: 350px;
+  height: 100vh;
+  background-color: #f9f9f9;
+  box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+  transition: right 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+
+/* Classe dinamica applicata da Vue per farla apparire */
+#sidebar-chat.aperta {
+  right: 0; 
+}
+
+.header-chat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: v-bind('skin.temaPrincipale');
+  color: white;
+}
+
+.area-messaggi {
+  flex: 1; /* Prende tutto lo spazio verticale disponibile */
+  padding: 15px;
+  overflow-y: auto; /* Aggiunge la barra di scorrimento se ci sono troppi messaggi */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.messaggio {
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.ora {
+  color: #888;
+  font-size: 0.8rem;
+}
+
+.mio-messaggio {
+  color: v-bind('skin.temaPrincipale');
+}
+
+.input-chat {
+  display: flex;
+  padding: 10px;
+  background-color: #ddd;
+}
+
+.input-chat input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  margin-right: 5px;
+}
+
+.input-chat button {
+  padding: 10px 15px;
+  background-color: #333;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }
 </style>
