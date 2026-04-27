@@ -1,12 +1,17 @@
 <script setup>
   import {skin} from "../ambiente"
+  import { useRouter } from 'vue-router';
+  const router=useRouter();
+  const TornaHome = () => {
+    router.push('/')
+  };
 </script>
 
 <template>
   <div id="main-header">
-    MineSweeperMMO
+    <label @click="TornaHome">MineSweeperMMO</label>
     <div>
-      {{skin.icona}} Nome profilo
+      var(--icona) Nome profilo
       <button>LOG OUT</button>
     </div>
   </div>

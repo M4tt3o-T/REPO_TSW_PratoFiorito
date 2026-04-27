@@ -133,6 +133,10 @@ const mettiBandierina = (x, y) => {
       </div>
     </div>
 
+    <div id="chat">
+      💬
+    </div>
+
   </div>
 </template>
 
@@ -140,13 +144,24 @@ const mettiBandierina = (x, y) => {
 /* 'scoped' significa che queste regole CSS si applicheranno SOLO a questa pagina e non andranno a rompere il layout del resto del sito.
 */
 
+#chat{
+  position : fixed;
+  right : 4%;
+  bottom : 5%;
+  padding : 1.2%;
+  background-color: var(--bg-color);
+  /*background-color: rgb(220, 220, 220);*/
+  font-size: 33px;
+  opacity: 0.8;
+}
+
 #zonaPartita {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 1rem;
   /* Utilizziamo v-bind per iniettare una variabile reattiva JS nel CSS */
-  background-color: v-bind('skin.temaPrincipale');
+  background-color: var(--bg-color);
 }
 
 #div_pulsanti {
@@ -165,7 +180,7 @@ const mettiBandierina = (x, y) => {
 
 .grid-container {
   /* Bordo dinamico basato sul tema globale */
-  border: 5px solid v-bind('skin.temaPrincipale');
+  border: 5px solid var(--bg-color);
   padding: 10px;
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 8px;

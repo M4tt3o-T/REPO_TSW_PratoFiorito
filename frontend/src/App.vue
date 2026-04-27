@@ -16,5 +16,9 @@ import {skin} from '@/ambiente.js'
   #sfondo{
   --bg-color: v-bind('skin.temaPrincipale');
   --bg-pattern: v-bind('skin.sfondoURL');
+  --icona: v-bind('skin.icona');
+  height:100%;
+  width:100%;
+  min-height: 100%;
 }
 </style>

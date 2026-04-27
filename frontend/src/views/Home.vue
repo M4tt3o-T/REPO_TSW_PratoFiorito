@@ -1,7 +1,5 @@
 <script setup>
 import { ref, computed } from 'vue';
-// Importiamo la 'skin' dallo store globale per poter leggere il colore del tema
-import { skin } from "../ambiente.js";
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -138,7 +136,7 @@ const UniscitiPartita = () => {
     display: flex; flex-direction: column; justify-content: center;
     padding-top: 4rem; width: 48%; height: 70%;
     /* Utilizziamo il tema scelto dall'utente nello store globale */
-    background-color: v-bind("skin.temaPrincipale");
+    background-color: var(--bg-color);
   }
   button { font-size: 2rem; margin: 1.7rem 10%; cursor: pointer; }
   
