@@ -1,3 +1,4 @@
+const db = require('./db/index');
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -24,7 +25,7 @@ io.on('connection', (socket) => {
   console.log(`Nuovo giocatore connesso! ID: ${socket.id}`);
 
   // 1. L'utente chiede di entrare/creare una partita
-  socket.on('unisciti_partita', (dati) => {
+  socket.on('unisciti_partita', async (dati) => {
     const { idPartita, username, azione } = dati;
     
     // CASO A: L'utente vuole unirsi a una partita
@@ -44,6 +45,16 @@ io.on('connection', (socket) => {
         
         // Calcoliamo quante mine piazzare fisicamente (Arrotondato per difetto)
         const mineTotali = Math.floor((size * size) * (perc / 100));
+
+        //--Operazione DB: Registriamo la partita--
+        try{
+          await db.query(
+            'INSERT INTO partite (chiave_accesso, larghezza, altezza, numero_mine, stato) VALUES ($1, $2, $3, $4, $5)',
+            [idPartita, size, size, mineTotali, 'in_corso']
+          );
+        } catch (err) {
+          console.error("Errore salvataggio partita nel DB:", err);
+        }
 
         // Creiamo una nuova partita con le impostazioni desiderate
         activeGames[idPartita] = {
@@ -68,7 +79,7 @@ io.on('connection', (socket) => {
   });
 
   // 2. Il client invia una mossa
-  socket.on('mossa_utente', (dati) => {
+  socket.on('mossa_utente', async (dati) => {
     const { idPartita, x, y, azione } = dati;
     const partita = activeGames[idPartita];
 
@@ -102,6 +113,24 @@ io.on('connection', (socket) => {
 
     // C. Controlliamo se questa mossa lo ha fatto vincere
     if (gameLogic.checkWin(partita.grid, partita.totalMines)) {
+      const puntiVinti = 10; //Ancora da definire
+      //--Operazione DB: Chiudiamo la partita
+      try {
+        await db.query(
+          'UPDATE partite SET stato = $1, data_fine = NOW(), id_vincitore = $2 WHERE chiave_accesso = $3',
+          ['vinta', dati.idUtente, idPartita]
+        );
+
+        await db.query(
+          'UPDATE utenti SET valuta = valuta + $1 WHERE id_utente = $2',
+          [puntiVinti, dati.idUtente]
+        );
+        
+        console.log(`Partita ${idPartita} vinta. Premio: ${puntiVinti} all' utente ${dati.idUtente}`);
+      } catch (err) {
+        console.error("Errore aggiornamento fine partita:", err);
+      }
+
       io.to(idPartita).emit('partita_terminata', { esito: 'vittoria', griglia: partita.grid });
       delete activeGames[idPartita]; // Puliamo la RAM
       return;
@@ -112,8 +141,8 @@ io.on('connection', (socket) => {
   });
 
   // Gestione della Chat
-  socket.on('invia_messaggio_chat', (dati) => {
-    const { idPartita, username, testo } = dati;
+  socket.on('invia_messaggio_chat', async (dati) => {
+    const { idPartita, idUtente, username, testo } = dati;
     
     if (activeGames[idPartita]) {
       // Creiamo l'oggetto messaggio (proprio come fosse una riga del database)
@@ -122,6 +151,21 @@ io.on('connection', (socket) => {
         testo: testo,
         ora: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) // Es. "14:30"
       };
+
+      //--Operazione DB: Salviamo  nella tabella messaggi olte che nella RAM
+      try {
+        //Recuperiamo l'uuid della partita tramite il campo 'chiave_accesso'
+        const resPartita = await db.query('SELECT id_partita FROM partite  WHERE chiave_accesso = $1', [idPartita]);
+        if (resPartita.rows.length > 0) {
+          const uuidPartita = resPartita.rows[0].id_partita;
+          await db.query(
+            'INSERT INTO messaggi (id_partita, id_utente, testo) VALUES ($1, $2, $3)',
+            [uuidPartita, idUtente, testo]
+          );
+        }
+      } catch (err) {
+        console.error("Errore salvataggio messaggio:", err);
+      }
 
       // 1. Lo salviamo nel placeholder in RAM
       activeGames[idPartita].messaggi.push(nuovoMessaggio);
