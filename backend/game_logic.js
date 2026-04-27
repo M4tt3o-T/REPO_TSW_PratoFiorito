@@ -134,6 +134,17 @@ function checkWin(grid, totalMines) {
   return revealedCount === (totalCells - totalMines);
 }
 
+// Rivela tutte le mine sulla griglia (da usare al Game Over)
+function revealAllMines(grid) {
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[y].length; x++) {
+      if (grid[y][x].isMine) {
+        grid[y][x].isRevealed = true; // Svela la mina!
+      }
+    }
+  }
+}
+
 
 module.exports = {
   generateEmptyGrid,
@@ -141,5 +152,6 @@ module.exports = {
   calculateNumbers,
   revealCell,
   toggleFlag,
-  checkWin
+  checkWin,
+  revealAllMines
 };

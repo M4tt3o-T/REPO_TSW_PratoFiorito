@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '@/views/Page.vue'
-import Login from '@/views/login/Page.vue'
-import Shop from '@/views/shop/Page.vue'
-import Partita from '@/views/partita/Page.vue'
-import Inventario from '@/views/inventario/Page.vue'
-import Obiettivi from '@/views/obiettivi/Page.vue'
-import Classifica from '@/views/classifica/Page.vue'
+import Home from '@/views/Home.vue'
+import Login from '@/views/login/Login.vue'
+import Shop from '@/views/shop/Shop.vue'
+import Partita from '@/views/partita/Partita.vue'
+import Inventario from '@/views/inventario/Inventario.vue'
+import Obiettivi from '@/views/obiettivi/Obiettivi.vue'
+import Classifica from '@/views/classifica/Classifica.vue'
 
 
 const router = createRouter({
@@ -27,7 +27,7 @@ const router = createRouter({
       component: Shop,
     },
     {
-      path: '/partita',
+      path: '/partita/:id',
       name: 'partita',
       component: Partita,
     },
