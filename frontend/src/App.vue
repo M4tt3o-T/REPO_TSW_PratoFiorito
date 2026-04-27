@@ -3,22 +3,19 @@ import Header from '@/components/Header.vue'
 import {skin} from '@/ambiente.js'
 </script>
 
-<template>
+<template >
+  <div id="ambiente">
     <Header />
-  <main>
-    <div id="sfondo">
+    <main>
       <RouterView />
-    </div>
-  </main>
+    </main>
+  </div>
 </template>
 
 <style>
-  #sfondo{
+  #ambiente {
   --bg-color: v-bind('skin.temaPrincipale');
   --bg-pattern: v-bind('skin.sfondoURL');
   --icona: v-bind('skin.icona');
-  height:100%;
-  width:100%;
-  min-height: 100%;
 }
 </style>

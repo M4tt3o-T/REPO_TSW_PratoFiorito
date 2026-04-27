@@ -11,7 +11,7 @@
   <div id="main-header">
     <label @click="TornaHome">MineSweeperMMO</label>
     <div>
-      var(--icona) Nome profilo
+      <label style="font-size:30px;">{{skin.icona}}</label> Nome profilo
       <button>LOG OUT</button>
     </div>
   </div>
@@ -28,7 +28,7 @@ button{
     align-items:center;
     padding:1%;
     font-size: 2.5vh;
-    background-color: v-bind('skin.temaPrincipale');
+    background-color: var(--bg-color);
     transition: background-color 0.3s ease;
   }
 </style>
