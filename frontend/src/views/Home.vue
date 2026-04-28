@@ -133,12 +133,17 @@ const UniscitiPartita = () => {
 <style scoped>
   /* Stili del menu principale */
   #menu {
-    display: flex; flex-direction: column; justify-content: center;
-    padding-top: 4rem; width: 48%; height: 70%;
-    /* Utilizziamo il tema scelto dall'utente nello store globale */
+    margin-top:3%;
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center;
+    padding-top: 4rem; 
+    width: 48%; 
+    height: 70%;
     background-color: var(--bg-color);
   }
-  button { font-size: 2rem; margin: 1.7rem 10%; cursor: pointer; }
+  button { font-size: 1.5dvw; margin: 1.7rem 10%; cursor: pointer; }
+  input { font-size: 1.5dvw; }
   
   /* Stili per la casella "Unisciti" */
   .join-box { display: flex; flex-direction: column; align-items: center; margin: 0 10%; gap: 10px; }

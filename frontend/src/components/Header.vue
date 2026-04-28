@@ -5,6 +5,9 @@
   const TornaHome = () => {
     router.push('/')
   };
+  const VaiLogin = () => {
+    router.push("/login")
+  };
 </script>
 
 <template>
@@ -12,7 +15,7 @@
     <label @click="TornaHome">MineSweeperMMO</label>
     <div>
       <label style="font-size:30px;">{{skin.icona}}</label> Nome profilo
-      <button>LOG OUT</button>
+      <button @click="VaiLogin">LOG OUT</button>
     </div>
   </div>
 </template>
