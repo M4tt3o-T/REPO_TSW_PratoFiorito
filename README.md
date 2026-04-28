@@ -1,6 +1,7 @@
 # MineSweeper MMO
 
 Questo progetto è una versione multiplayer in tempo reale di Campo Minato (Minesweeper), dove i giocatori possono creare stanze private, personalizzare la difficoltà e collaborare per ripulire la griglia dalle mine.
+- **Attualmente disponibile al link:** https://minesweepermmo.netlify.app/
 
 ## Funzionalità Attuali
 
