@@ -21,17 +21,18 @@
 </template>
 
 <style scoped>
-button{
-  padding:1rem;
-  font-size:18px
-}
+  button{
+    padding:1rem;
+    font-size:18px
+  }
   #main-header{
     display: flex;
     justify-content: space-between;
     align-items:center;
     padding:1%;
     font-size: 2.5vh;
-    background-color: var(--bg-color);
+    background: linear-gradient(var(--bg-color),color-mix(in srgb, var(--bg-color), black 20%));
+    /*background-color: var(--bg-color);*/
     transition: background-color 0.3s ease;
   }
 </style>

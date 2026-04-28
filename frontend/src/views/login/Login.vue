@@ -21,7 +21,7 @@ const gestisciLogin = () => {
 
 <template>
   <div id="main">
-    <div id="finestraLogin">
+    <div id="finestraLogin" class="finestra">
       <form @submit="gestisciLogin">
         <div id="div_email">
           <label for="email">Email: </label> <br>

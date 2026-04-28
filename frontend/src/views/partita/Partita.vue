@@ -163,7 +163,7 @@ const mettiBandierina = (x, y) => {
       Connessione alla stanza {{ idStanza }} in corso...
     </div>
 
-    <div v-else id="zonaPartita">
+    <div v-else id="zonaPartita" class="finestra">
       
       <div class="grid-container">
         <div v-for="(riga, y) in griglia" :key="'riga-'+y" class="riga-flex">
@@ -240,11 +240,11 @@ const mettiBandierina = (x, y) => {
 }
 
 #zonaPartita {
+  margin-top:5%;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 1rem;
-  /* Utilizziamo v-bind per iniettare una variabile reattiva JS nel CSS */
   background-color: var(--bg-color);
 }
 
