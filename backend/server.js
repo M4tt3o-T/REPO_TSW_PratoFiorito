@@ -4,10 +4,13 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const bcrypt = require('bcrypt'); // Libreria per la sicurezza delle password
-const cors = require('cors')
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
 
 // Importiamo il motore di gioco
 const gameLogic = require('./game_logic'); 
+// Importiamo il middleware
+const authMidWare = require('./middleware/auth');
 
 const app = express();
 
@@ -49,6 +52,21 @@ const io = new Server(server, {
   cors: corsOptions
 });
 
+//Serve un "middleware" per le socket 
+io.use((socket, next) => {
+    const token = socket.handshake.auth.token;
+    if (!token) return next(new Error("Autenticazione richiesta"));
+
+    try {
+        const ver = jwt.verify(token, process.env.JWT_SECRET);
+        socket.user = ver; //Salviamo l'id nel socket
+        next(); 
+    } catch (err) {
+        next(new Error("Token non valido"));
+    }
+
+});
+
 // --- LOGICA SOCKET.IO (GIOCO) ---
 
 // Questa variabile terrà in memoria (RAM) lo stato di tutte le partite in corso.
@@ -57,6 +75,9 @@ const activeGames = {};
 // Rotte per l'autenticazione
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
+
+const statsRoutes = require('./routes/stats');
+app.use('/api/stats', statsRoutes);
 
 // Rotte per lo shop
 const shopRoutes = require('./routes/shop');

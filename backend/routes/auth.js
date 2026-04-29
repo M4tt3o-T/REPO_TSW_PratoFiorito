@@ -10,10 +10,10 @@ router.post('/signup', async (req, res) => {
 
     //Validazione
     if (!username || !email || !password) {
-        return res.status(400).json({error: "Tutti i campi sono obbligatori"});
+        return res.status(400).json({ success: false, error: "Tutti i campi sono obbligatori"});
     }
     if (password.lenght < 8) {
-        return res.status(400).json({error: "La password deve contenere almeno 8 caratteri"});
+        return res.status(400).json({ success: false, error: "La password deve contenere almeno 8 caratteri"});
     }
 
     try {
@@ -35,14 +35,14 @@ router.post('/signup', async (req, res) => {
         //Generiamo il token 
         const token = jwt.sign({id: newUser.id_utente}, process.env.JWT_SECRET, { expiresIn: '24h'});
 
-        res.status(201).json({ message: "Registrazione riuscita", token, user: newUser});
+        res.status(201).json({ success: true, message: "Registrazione riuscita", token, user: newUser});
 
     } catch (err) {
         if (err.code === '23505') { //Errore Chiave Duplicata di Postgres
-            return res.status(400).json({ error: "Email o Username già esistenti"});
+            return res.status(400).json({ success: false, error: "Email o Username già esistenti"});
         }
         console.error(err);
-        res.status(500).json({error: "Errore interno del server"});
+        res.status(500).json({ success: false, error: "Errore interno del server"});
     }
 });
 
@@ -55,21 +55,22 @@ router.post('/login', async (req, res) => {
         const result = await db.query('SELECT * FROM utenti WHERE email = $1', [email]);
         const user = result.rows[0];
 
-        if (!user) return res.status(401).json({error: "Credenziali non valide"});
+        if (!user) return res.status(401).json({ success: false, error: "Credenziali non valide"});
         
         //Confrontiamo la password
         const giusto = await bcrypt.compare(password, user.hashword);
-        if (!giusto) return res.status(401).json({error: "Credenziali non valide"});
+        if (!giusto) return res.status(401).json({ success: false, error: "Credenziali non valide"});
 
         //Generiamo il token
         const token = jwt.sign({ id: user.id_utente}, process.env.JWT_SECRET, { expiresIn: '24h'});
 
         res.json({
+            success: true,
             token,
             user: {id: user.id_utente, username: user.username, email: user.email, valuta: user.valuta}
         });
      } catch (err) {
-        res.status(500).json({error: "Errore nel login"});
+        res.status(500).json({ success: false, error: "Errore nel login"});
      }
 });
 
