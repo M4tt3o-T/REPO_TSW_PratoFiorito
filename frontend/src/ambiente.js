@@ -29,5 +29,6 @@ export const sessione = reactive({
     this.utente = null;
     // Cancella dal disco rigido
     localStorage.removeItem('utente_campo_minato');
+    localStorage.removeItem('token_campo_minato');
   }
 })

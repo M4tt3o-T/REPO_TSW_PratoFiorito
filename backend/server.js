@@ -49,68 +49,20 @@ const io = new Server(server, {
   cors: corsOptions
 });
 
-// --- ROTTE DI AUTENTICAZIONE (HTTP) ---
-
-// 1. Registrazione (Signup)
-app.post('/api/signup', async (req, res) => {
-  const { username, email, password } = req.body;
-  try {
-    // Criptiamo la password prima di salvarla
-    const saltRounds = 10;
-    const hash = await bcrypt.hash(password, saltRounds);
-
-    const result = await db.query(
-      'INSERT INTO utenti (username, email, hashword) VALUES ($1, $2, $3) RETURNING id_utente, username',
-      [username, email, hash]
-    );
-    
-    res.status(201).json({ success: true, user: result.rows[0] });
-  } catch (err) {
-    console.error(err);
-    if (err.code === '23505') { // Errore di duplicato (Unique constraint)
-      res.status(400).json({ success: false, message: "Username o Email già esistenti" });
-    } else {
-      res.status(500).json({ success: false, message: "Errore durante la registrazione" });
-    }
-  }
-});
-
-// 2. Accesso (Login)
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const result = await db.query('SELECT * FROM utenti WHERE email = $1', [email]);
-    
-    if (result.rows.length === 0) {
-      return res.status(401).json({ success: false, message: "Utente non trovato" });
-    }
-
-    const utente = result.rows[0];
-    // Confrontiamo la password digitata con quella criptata nel DB
-    const match = await bcrypt.compare(password, utente.hashword);
-
-    if (match) {
-      res.json({ 
-        success: true, 
-        user: { id_utente: utente.id_utente, username: utente.username } 
-      });
-    } else {
-      res.status(401).json({ success: false, message: "Password errata" });
-    }
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Errore durante il login" });
-  }
-});
-
 // --- LOGICA SOCKET.IO (GIOCO) ---
 
 // Questa variabile terrà in memoria (RAM) lo stato di tutte le partite in corso.
 const activeGames = {}; 
 
-// Quando un nuovo client si connette al server
+// Rotte per l'autenticazione
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 
+// Rotte per lo shop
+const shopRoutes = require('./routes/shop');
+app.use('/api/shop', shopRoutes);
+
+// Quando un nuovo client si connette al server
 io.on('connection', (socket) => {
   console.log(`Nuovo giocatore connesso! ID: ${socket.id}`);
 

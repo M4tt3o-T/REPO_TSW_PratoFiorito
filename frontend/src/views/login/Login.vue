@@ -16,21 +16,30 @@ const email=ref('');
 const password=ref('');
 
 const gestisciLogin = async () => {
-  const response = await fetch(`${API_URL}/api/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      email: email.value,
-      password: password.value
-    })
-  });
+  try {
+    const response = await fetch(`${API_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email.value,
+        password: password.value
+      })
+    });
 
-  const dati = await response.json();
-  if (dati.success) {
-    sessione.setUtente(dati.user);
-    router.push("/");
-  } else {
-    alert(dati.message);
+    const dati = await response.json();
+    
+    // Usiamo response.ok che controlla se lo stato HTTP è positivo (es. 200 OK)
+    if (response.ok) {
+      sessione.setUtente(dati.user);
+      localStorage.setItem('token_campo_minato', dati.token);
+      router.push("/");
+    } else {
+      // Se fallisce, usiamo l'errore del backend o un messaggio generico
+      alert(dati.error || "Errore sconosciuto durante il login");
+    }
+  } catch (err) {
+    console.error("Errore di connessione:", err);
+    alert("Impossibile connettersi al server.");
   }
 };
 

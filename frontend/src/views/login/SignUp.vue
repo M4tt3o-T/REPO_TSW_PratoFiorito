@@ -19,28 +19,38 @@ const password = ref('');
 const confermaPassword = ref('');
 
 const gestisciSignup = async () => {
+  // 1. Controllo validità password lato client
   if (password.value !== confermaPassword.value) {
-    alert("ERRORE: le password non combaciano");
-    return false;
+    alert("ERRORE: Le password non combaciano");
+    return false; // Interrompiamo l'esecuzione qui
   }
-  router.push("/");
 
-  const response = await fetch(`${API_URL}/api/signup`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      username: username.value,
-      email: email.value,
-      password: password.value
-    })
-  });
+  try {
+    // 2. Chiamata al server
+    const response = await fetch(`${API_URL}/api/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: username.value,
+        email: email.value,
+        password: password.value
+      })
+    });
 
-  const dati = await response.json();
-  if (dati.success) {
-    sessione.setUtente(dati.user); // Salviamo l'utente loggato
-    router.push("/");
-  } else {
-    alert(dati.message);
+    const dati = await response.json();
+
+    // 3. Verifichiamo se il server ha risposto con successo
+    if (response.ok) {
+      sessione.setUtente(dati.user); // Salviamo l'utente loggato
+      localStorage.setItem('token_campo_minato', dati.token); // Salviamo il token di sicurezza
+      router.push("/");
+    } else {
+      // 4. Gestione errori forniti dal backend
+      alert(dati.error || "Errore sconosciuto durante la registrazione");
+    }
+  } catch (err) {
+    console.error("Errore di connessione:", err);
+    alert("Impossibile connettersi al server. Riprova più tardi.");
   }
 };
 </script>
