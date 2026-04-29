@@ -12,14 +12,22 @@ const gameLogic = require('./game_logic');
 const app = express();
 const server = http.createServer(app);
 
-app.use(cors())
+app.use(cors({
+    origin: ['https://minesweepermmo.netlify.app', 'http://localhost:5173'], 
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 // Permette a express di leggere il corpo delle richieste POST (JSON)
 app.use(express.json());
 // Dice a Express di servire i file della cartella frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 const io = new Server(server, {
-  cors: { origin: "*" } // Permette al frontend di connettersi senza blocchi
+  cors: {
+        origin: ['https://minesweepermmo.netlify.app', 'http://localhost:5173'],
+        methods: ["GET", "POST"],
+        credentials: true
+    }
 });
 
 // --- ROTTE DI AUTENTICAZIONE (HTTP) ---
