@@ -74,6 +74,3 @@ router.post('/login', async (req, res) => {
 });
 
 module.exports = router;
-//app.use(express.json()); // Per leggere req.body
-//const authRoutes = require('./routes/auth');
-//app.use('/api/auth', authRoutes);

@@ -108,7 +108,6 @@ app.post('/api/login', async (req, res) => {
 const activeGames = {}; 
 
 // Quando un nuovo client si connette al server
-app.use(express.json()); // Per leggere req.body
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 
