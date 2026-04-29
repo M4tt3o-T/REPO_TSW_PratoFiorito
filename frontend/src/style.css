@@ -1,15 +1,21 @@
 * {
   margin: 0;
   padding: 0;
-  overflow: hidden;
 }
-#main{
-    width:100dvw;
-    height: 100dvh;
-    display: flex;
-    justify-content: center;
-    align-items: top;
-    background-image: var(--bg-pattern);
-    background-repeat: repeat;
-    background-attachment: fixed;
-  }
+
+body {
+  overflow-x: hidden;
+}
+
+#main {
+  width: 100dvw;
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background-image: var(--bg-pattern);
+  background-repeat: repeat;
+  background-attachment: fixed;
+  padding-bottom: 3rem;
+  box-sizing: border-box;
+}

@@ -145,6 +145,13 @@ function revealAllMines(grid) {
   }
 }
 
+// Funzione di supporto
+const contaCelleScoperte = (grid) => {
+    let count = 0;
+    grid.forEach(row => row.forEach(cell => { if(cell.isRevealed) count++; }));
+    return count;
+};
+
 
 module.exports = {
   generateEmptyGrid,
@@ -153,5 +160,6 @@ module.exports = {
   revealCell,
   toggleFlag,
   checkWin,
-  revealAllMines
+  revealAllMines,
+  contaCelleScoperte
 };

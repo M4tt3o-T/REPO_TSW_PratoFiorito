@@ -1,6 +1,10 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { sessione } from '../../ambiente.js';
+
+// Recupera l'indirizzo (locale o online) dal file .env
+const API_URL = import.meta.env.VITE_SOCKET_URL;
 
 const router = useRouter();
 
@@ -14,12 +18,30 @@ const email = ref('');
 const password = ref('');
 const confermaPassword = ref('');
 
-const gestisciSignup = () => {
+const gestisciSignup = async () => {
   if (password.value !== confermaPassword.value) {
     alert("ERRORE: le password non combaciano");
     return false;
   }
   router.push("/");
+
+  const response = await fetch(`${API_URL}/api/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      username: username.value,
+      email: email.value,
+      password: password.value
+    })
+  });
+
+  const dati = await response.json();
+  if (dati.success) {
+    sessione.setUtente(dati.user); // Salviamo l'utente loggato
+    router.push("/");
+  } else {
+    alert(dati.message);
+  }
 };
 </script>
 

@@ -1,6 +1,11 @@
-<script setup lang="ts">
+<script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { sessione } from '../../ambiente.js';
+
+// Recupera l'indirizzo (locale o online) dal file .env
+const API_URL = import.meta.env.VITE_SOCKET_URL;
+
 const router=useRouter();
 
 const VaiSignUp = () => {
@@ -10,10 +15,24 @@ const VaiSignUp = () => {
 const email=ref('');
 const password=ref('');
 
-const gestisciLogin = () => {
-  //fa quello che deve fare con i dati
-  router.push("/");
-}
+const gestisciLogin = async () => {
+  const response = await fetch(`${API_URL}/api/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: email.value,
+      password: password.value
+    })
+  });
+
+  const dati = await response.json();
+  if (dati.success) {
+    sessione.setUtente(dati.user);
+    router.push("/");
+  } else {
+    alert(dati.message);
+  }
+};
 
 </script>
 
@@ -22,7 +41,7 @@ const gestisciLogin = () => {
 <template>
   <div id="main">
     <div id="finestraLogin">
-      <form @submit="gestisciLogin">
+      <form @submit.prevent="gestisciLogin">
         <div id="div_email">
           <label for="email">Email: </label> <br>
           <input v-model="email" type="email" id="email" size="35" required>
