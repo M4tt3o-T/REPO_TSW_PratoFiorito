@@ -20,12 +20,25 @@ const corsOptions = {
 
 const server = http.createServer(app);
 
-app.use(cors(corsOptions));
 app.use((req, res, next) => {
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(204); // 204 significa "Tutto OK, puoi procedere"
+    const origin = req.headers.origin;
+    
+    // Se la richiesta proviene da Netlify o Localhost, la autorizziamo dinamicamente
+    if (corsOptions.origin.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
     }
-    next();
+    
+    // Inseriamo esplicitamente tutti gli header di sicurezza richiesti dal browser
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+    // Intercettiamo il preflight e rispondiamo con un OK (200) immediato
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    next(); // Passiamo alle rotte vere e proprie (es. /api/login)
 });
 // Permette a express di leggere il corpo delle richieste POST (JSON)
 app.use(express.json());
