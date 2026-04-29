@@ -20,6 +20,9 @@ export const sessione = reactive({
   utente: utenteSalvato, 
   
   setUtente(dati) { 
+    if (dati && dati.id && !dati.id_utente) {
+      dati.id_utente = dati.id;
+    }
     this.utente = dati;
     // Salva nel disco rigido del browser
     localStorage.setItem('utente_campo_minato', JSON.stringify(dati));

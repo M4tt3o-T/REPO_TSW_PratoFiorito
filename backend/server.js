@@ -122,7 +122,7 @@ io.on('connection', (socket) => {
                               grid: p.mappa_config || gameLogic.generateEmptyGrid(p.larghezza, p.altezza),
                               totalMines: p.numero_mine,
                               isFirstClick: p.is_first_click,
-                              giocatori: [],
+                              giocatori: {},
                               messaggi: []
                           };
                           console.log(`Partita ${idPartita} ripristinata dal DB in RAM`);
@@ -189,7 +189,7 @@ io.on('connection', (socket) => {
                       grid: gameLogic.generateEmptyGrid(size, size),
                       totalMines: mineTotali,
                       isFirstClick: true,
-                      giocatori: [],
+                      giocatori: {},
                       messaggi: []
                   };
 
@@ -203,10 +203,15 @@ io.on('connection', (socket) => {
       socket.join(idPartita);
       console.log(`${username} è entrato nella partita ${idPartita}`);
       
-      // Evitiamo di inserire cloni nell'array della RAM
-      if (!activeGames[idPartita].giocatori.includes(username)) {
-          activeGames[idPartita].giocatori.push(username);
+      // Registriamo l'utente nell'oggetto usando il suo ID
+      // Se non esiste ancora in questa sessione attiva, lo creiamo partendo da 0 punti
+      if (!activeGames[idPartita].giocatori[idUtente]) {
+          activeGames[idPartita].giocatori[idUtente] = {
+              username: username,
+              punti: 0 
+          };
       }
+      socket.datiUtente = { idPartita, idUtente, username };
       
       io.to(idPartita).emit('messaggio_sistema', `${username} si è unito alla partita!`);
       socket.emit('aggiorna_griglia', activeGames[idPartita].grid);
@@ -434,9 +439,39 @@ io.on('connection', (socket) => {
   });
 
   // Gestione della disconnessione
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async () => {
     console.log(`Giocatore disconnesso: ${socket.id}`);
-    // Qui andrà aggiunta la logica per rimuovere l'utente dalla partita
+    
+    // Controlliamo se avevamo messo l'etichetta a questo utente
+    if (socket.datiUtente) {
+        const { idPartita, idUtente, username } = socket.datiUtente;
+        const partita = activeGames[idPartita];
+
+        // Se la partita è ancora attiva in RAM
+        if (partita && partita.giocatori[idUtente]) {
+            const puntiDaSalvare = partita.giocatori[idUtente].punti;
+
+            if (puntiDaSalvare > 0) {
+                try {
+                    // 1. Salviamo i punti parziali nel database (nello storico)
+                    await db.query(
+                        'UPDATE gioca_in SET punteggio_partita = COALESCE(punteggio_partita, 0) + $1 WHERE id_partita = $2 AND id_utente = $3',
+                        [puntiDaSalvare, partita.uuid, idUtente]
+                    );
+
+                    // 2. Azzeriamo i punti in RAM
+                    // (Così se la partita finisce dopo, non glieli salviamo due volte)
+                    partita.giocatori[idUtente].punti = 0;
+                    
+                } catch (err) {
+                    console.error("Errore salvataggio punti su disconnessione:", err);
+                }
+            }
+
+            // Avvisiamo gli altri giocatori rimasti
+            io.to(idPartita).emit('messaggio_sistema', `${username} ha abbandonato la partita.`);
+        }
+    }
   });
 
   // Gestione richiesta storico personale
