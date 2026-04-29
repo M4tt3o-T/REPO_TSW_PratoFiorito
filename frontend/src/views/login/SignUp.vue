@@ -47,7 +47,7 @@ const gestisciSignup = async () => {
 
 <template>
   <div id="main">
-    <div id="finestraSignup">
+    <div id="finestraSignup" class="finestra">
       <form @submit.prevent="gestisciSignup">
 
         <div id="div_username">

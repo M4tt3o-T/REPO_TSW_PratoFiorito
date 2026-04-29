@@ -133,7 +133,7 @@ const storicoFiltrato = computed(() => {
 <template>
   <div id="main">
     
-    <div id="menu">
+    <div id="menu" class="finestra">
       <button @click="ApriModaleCreazione">Crea Nuova Partita</button>
       
       <div class="join-box">

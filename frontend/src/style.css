@@ -19,3 +19,8 @@ body {
   padding-bottom: 3rem;
   box-sizing: border-box;
 }
+
+.finestra{
+  box-shadow: 5px 5px 30px rgb(0, 0, 0);
+  border-radius: 10px;
+}
