@@ -21,7 +21,12 @@ const corsOptions = {
 const server = http.createServer(app);
 
 app.use(cors(corsOptions));
-app.options('/(.*)', cors(corsOptions));
+app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(204); // 204 significa "Tutto OK, puoi procedere"
+    }
+    next();
+});
 // Permette a express di leggere il corpo delle richieste POST (JSON)
 app.use(express.json());
 // Dice a Express di servire i file della cartella frontend
