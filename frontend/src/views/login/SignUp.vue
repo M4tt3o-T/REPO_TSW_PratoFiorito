@@ -52,22 +52,22 @@ const gestisciSignup = async () => {
 
         <div id="div_username">
             <label for="username">Username:</label> <br>
-            <input v-model="username" type="text" id="username" size="35" required>
+            <input v-model="username" type="text" id="username" required>
         </div>
 
         <div id="div_email">
             <label for="email">Email:</label> <br>
-            <input v-model="email" type="email" id="email" size="35" required>
+            <input v-model="email" type="email" id="email" required>
         </div>
         
         <div id="div_password">
             <label for="password">Password:</label> <br>
-            <input v-model="password" type="password" id="password" size="35" required>
+            <input v-model="password" type="password" id="password" required>
         </div>
         
         <div id="div_confermaPassword">
             <label for="confermaPassword">Conferma Password:</label> <br>
-            <input v-model="confermaPassword" id="confermaPassword" type="password" size="35" required>
+            <input v-model="confermaPassword" id="confermaPassword" type="password" required>
         </div>
         
         <div id="div_bottoni">
@@ -81,37 +81,63 @@ const gestisciSignup = async () => {
 </template>
 
 <style scoped>
-    #div_username,#div_email,#div_password,#div_confermaPassword,#div_bottoni{
-        padding-top : 4%;
-        padding-bottom: 4%;
-        align-items: center;
-        font-size: 1.1dvw;
+  #finestraSignup {
+    margin: 5vh auto;
+    width: 90%;
+    max-width: 450px;
+    background-color: var(--bg-color);
+    padding: 30px;
+    border-radius: 12px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  }
+
+  #div_username, #div_email, #div_password, #div_confermaPassword {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    text-align: left;
+  }
+
+  input {
+    width: 100%;
+    font-size: 1rem;
+    padding: 10px;
+    margin-top: 5px;
+    box-sizing: border-box;
+    border-radius: 6px;
+    border: none;
+  }
+
+  #div_bottoni {
+    margin-top: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  button {
+    padding: 12px;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 6px;
+    border: none;
+    width: 100%;
+    transition: background-color 0.2s;
+  }
+
+  button:hover {
+    filter: brightness(0.9);
+  }
+
+  @media (min-width: 480px) {
+    #div_bottoni {
+      flex-direction: row;
+      justify-content: space-between;
     }
-    #div_username,#div_email,#div_password,#div_confermaPassword{
-        display: grid;
-        justify-content:left;
+    button {
+      width: 48%;
     }
-    #div_bottoni{
-        margin-top: 3%;
-        display: flex;
-        justify-content:space-between;
-    }
-    input{
-        margin-left:4%;
-        font-size:20px;
-    }
-    button{
-        padding:1%;
-        font-size: 1dvw;
-        cursor: pointer;
-    }
-    #finestraSignup {
-        margin-top:4%;
-        width :25dvw;
-        height : 60dvh;
-        background-color: var(--bg-color);
-        padding : 1%;
-        padding-left: 2%;
-        padding-right : 2%;
-    }
+  }
 </style>

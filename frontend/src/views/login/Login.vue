@@ -44,12 +44,12 @@ const gestisciLogin = async () => {
       <form @submit.prevent="gestisciLogin">
         <div id="div_email">
           <label for="email">Email: </label> <br>
-          <input v-model="email" type="email" id="email" size="35" required>
+          <input v-model="email" type="email" id="email" required>
         </div>
         
         <div id="div_password">
           <label for="password">Password:</label><br> 
-          <input v-model="password" type="password" id="password" name="password" size="35" required>
+          <input v-model="password" type="password" id="password" name="password" required>
         </div>
 
         <div id="div_bottoni">
@@ -66,37 +66,67 @@ const gestisciLogin = async () => {
 </template>
 
 <style scoped>
-  #div_email,#div_password,#div_bottoni{
-    padding-top : 6%;
-    padding-bottom: 6%;
-    align-items: center;
-    font-size: 1.1dvw;
-  }
-  #div_email,#div_password{
-    display: grid;
-    justify-content:left;
-  }
-  #div_bottoni{
-    margin-top: 3%;
-    display: flex;
-    justify-content:space-between;
-  }
-  input{
-    margin-left:4%;
-    font-size:20px;
-  }
-  button{
-    padding:1%;
-    font-size: 1dvw;
-    cursor: pointer;
-  }
-  #finestraLogin{
-    margin-top:5%;
-    width :25dvw;
-    height : 40dvh;
+  /* Il contenitore si adatta al telefono (90%) ma si ferma a 400px sui PC */
+  #finestraLogin {
+    margin: 10vh auto;
+    width: 90%;
+    max-width: 400px;
     background-color: var(--bg-color);
-    padding : 1%;
-    padding-left: 2%;
-    padding-right : 2%;
+    padding: 30px;
+    border-radius: 12px;
+    box-sizing: border-box;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  }
+
+  #div_email, #div_password {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    text-align: left;
+  }
+
+  /* L'input prende tutto lo spazio disponibile del contenitore */
+  input {
+    width: 100%;
+    font-size: 1rem;
+    padding: 12px;
+    margin-top: 8px;
+    box-sizing: border-box;
+    border-radius: 6px;
+    border: none;
+  }
+
+  /* Contenitore bottoni: colonna su mobile, riga su desktop */
+  #div_bottoni {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  button {
+    padding: 12px;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 6px;
+    border: none;
+    width: 100%;
+    transition: background-color 0.2s;
+  }
+
+  button:hover {
+    filter: brightness(0.9);
+  }
+
+  /* Se lo schermo è più largo di 480px (es. tablet o PC), i bottoni si affiancano */
+  @media (min-width: 480px) {
+    #div_bottoni {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+    button {
+      width: 48%; /* Ogni bottone prende quasi metà spazio */
+    }
   }
 </style>
