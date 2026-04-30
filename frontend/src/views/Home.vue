@@ -49,6 +49,11 @@ const ChiudiModale = () => {
   mostraModale.value = false;
 };
 
+// Funzione del pulsante per andare allo shop
+const VaiShop = () => {
+  router.push("/shop")
+}
+
 // Eseguita quando l'utente clicca "Inizia a Giocare!" nel modale
 const ConfermaCreazione = () => {
   // 1. Inventiamo un numero di stanza casuale
@@ -143,7 +148,7 @@ const storicoFiltrato = computed(() => {
 
       <button v-if="sessione.utente" @click="ApriStorico">Storico Partite</button>
       <button>Inventario</button>
-      <button>Shop</button>
+      <button @click="VaiShop">Shop</button>
       <button>Obiettivi</button>
       <button>Classifica</button>
     </div>
