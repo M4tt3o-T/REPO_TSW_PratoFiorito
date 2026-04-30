@@ -12,7 +12,6 @@ router.get('/classifica', async (req, res) => {
          ORDER BY valuta DESC
          LIMIT 10
          `;
-         const
       } catch (err) {
           console.error(err);
           res.status(500).json({ success: false, error: "Errore nel recupero della classfica"});
