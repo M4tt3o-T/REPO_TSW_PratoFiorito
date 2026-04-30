@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const authMidWare = (req, res, next) => {
     //Recuperiamo il token dell'header della richiesta
     const authHeader = req.header('Authorization');
-    const token = authHeader && authHeader.split('')[1]; //Prende solo la parte che ci interessa
+    const token = authHeader && authHeader.split(' ')[1]; //Prende solo la parte che ci interessa
     //Se autHeader non esiste si blocca
 
     //Se il token non c'è blocchiamo tutto
@@ -17,7 +17,7 @@ const authMidWare = (req, res, next) => {
         const verifica = jwt.verify(token, process.env.JWT_SECRET);
         
         //Inseriamo i dati in req
-        req.user = decoded;
+        req.user = verifica;
         //Può andare oltre adesso
         next();
     } catch(err) {

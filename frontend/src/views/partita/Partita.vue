@@ -71,7 +71,8 @@ onMounted(() => {
     return;
   }
   
-  // 1. Apriamo il canale di comunicazione con il server Node.js
+  // 1. Apriamo il canale di comunicazione con il server Node.js usando il token di sicurezza
+  socket.auth = { token: localStorage.getItem('token_campo_minato') };
   socket.connect();
   
   // 2. Invia la richiesta per entrare (o creare) la stanza
