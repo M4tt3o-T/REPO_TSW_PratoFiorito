@@ -12,11 +12,10 @@ body {
   min-height: 100dvh;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: top;
   background-image: var(--bg-pattern);
   background-repeat: repeat;
   background-attachment: fixed;
-  padding-bottom: 3rem;
   box-sizing: border-box;
 }
 

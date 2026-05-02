@@ -1,12 +1,20 @@
 import { reactive } from 'vue'
 
 export const skin = reactive({
-  temaPrincipale: '#42b9af',  //vecchio: #42b9af
+  temaPrincipale: '#42b9af',  //base: #42b9af
   sfondoURL: "url('/pattern/sfondo_base.jpg')",
   icona : "🎭",
   
   cambiaTema(tema) {
     this.temaPrincipale = tema
+  },
+
+  cambiaSfondo(sfondo) {
+    this.sfondoURL = "url("+sfondo+")"
+  },
+
+  cambiaIcona(icona) {
+    this.icona =icona
   }
 })
 
