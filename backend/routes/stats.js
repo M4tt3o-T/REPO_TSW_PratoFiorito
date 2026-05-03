@@ -12,6 +12,13 @@ router.get('/classifica', async (req, res) => {
          ORDER BY valuta DESC
          LIMIT 10
          `;
+
+         const result = await db.query(query);
+
+         res.json({
+            success: true,
+            classfica: result.rows
+         })
       } catch (err) {
           console.error(err);
           res.status(500).json({ success: false, error: "Errore nel recupero della classfica"});
@@ -23,6 +30,8 @@ router.get('/classifica', async (req, res) => {
 router.get('/me', auth, async (req, res) => {
     try {
         //l'id viene estratto dal token
+        const idUser = req.user.id;
+
         const query = `
            SELECT username, email, valuta,
            (SELECT COUNT(*) FROM partite WHERE id_vincitore = $1) as vittorie_totali
@@ -30,13 +39,16 @@ router.get('/me', auth, async (req, res) => {
            WHERE id_utente = $1
         `;
 
-        const result = await db.query(query, [req.user.id]);
+        const result = await db.query(query, [idUser]);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ success: false, error: "Utente non trovato"});
         }
 
-        res.json(result.rows[0]);
+        res.json({
+            success: true,
+            user: result.rows[0]
+        });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, error: "Errore nel recupero del profilo"});
