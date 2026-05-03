@@ -54,6 +54,11 @@ const VaiShop = () => {
   router.push("/shop")
 }
 
+// Funzione del pulsante per andare all'inventario
+const VaiInventario = () => {
+  router.push("/inventario")
+}
+
 // Eseguita quando l'utente clicca "Inizia a Giocare!" nel modale
 const ConfermaCreazione = () => {
   // 1. Inventiamo un numero di stanza casuale
@@ -147,7 +152,7 @@ const storicoFiltrato = computed(() => {
       </div>
 
       <button v-if="sessione.utente" @click="ApriStorico">Storico Partite</button>
-      <button>Inventario</button>
+      <button @click="VaiInventario">Inventario</button>
       <button @click="VaiShop">Shop</button>
       <button>Obiettivi</button>
       <button>Classifica</button>

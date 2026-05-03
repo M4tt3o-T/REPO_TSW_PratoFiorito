@@ -48,7 +48,7 @@
     //le icone non funzionano perché non sono collegate al profilo
     if(item.tipo=="tema") skin.cambiaTema(item.asset_url);
     else if (item.tipo=="sfondo") skin.cambiaSfondo(item.asset_url);
-    else if (item.icona=="icona") skin.cambiaIcona(item.asset_url);
+    else if (item.tipo=="icona") skin.cambiaIcona(item.asset_url);
 
     listaAcquisti.value.push(item.id_oggetto)    //se l'oggetto è stato acquistato correttamente allora lo aggiunge alla lista di id di item acquistati
     console.log("Oggetto Acquistato:",item)
@@ -71,7 +71,7 @@
         <div class="riga_oggetti">
           <div v-for="item in temi" :key="item.id" class="slot_oggetto">
             <div class="anteprima" :style="{ backgroundColor: item.asset_url }" @click="effettuaAcquisto(item)"></div>
-            <p>{{ item.nome }}</p>
+            <span>{{ item.nome }}</span>
             <span v-if="!listaAcquisti.includes(item.id_oggetto)">💰 {{ item.prezzo }}</span>   <!-- se non è nella listaAcquisti allora ne visualizza il prezzo-->
             <span v-else class="span_acquisto"> Acquistato ✅</span>                                                  <!--altrimenti visualizza che è stato acquistato-->
           </div>
@@ -87,7 +87,7 @@
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }" @click="effettuaAcquisto(item)"></div>
-            <p>{{ item.nome }}</p>
+            <span>{{ item.nome }}</span>
             <span v-if="!listaAcquisti.includes(item.id_oggetto)">💰 {{ item.prezzo }}</span>
             <span v-else class="span_acquisto"> Acquistato ✅</span>
           </div>
@@ -101,7 +101,7 @@
             <div class="anteprima anteprima_icone" @click="effettuaAcquisto(item)">
               {{ item.asset_url }}
             </div>
-            <p>{{ item.nome }}</p>
+            <span>{{ item.nome }}</span>
             <span v-if="!listaAcquisti.includes(item.id_oggetto)">💰 {{ item.prezzo }}</span>
             <span v-else class="span_acquisto"> Acquistato ✅</span>
           </div>
@@ -168,6 +168,7 @@
   .anteprima_icone {
     font-size: 200%;
     background-color: #f0f0f0;
+    user-select: none;
   }
 
   .span_acquisto{

@@ -14,7 +14,7 @@ export const skin = reactive({
   },
 
   cambiaIcona(icona) {
-    this.icona =icona
+    this.icona = icona
   }
 })
 
