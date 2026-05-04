@@ -184,7 +184,7 @@ const scopriCella = (x, y) => {
     idPartita: idStanza,
     x: x,
     y: y,
-    azione: 'scopri',
+    azione: azione,
     idUtente: sessione.utente.id_utente // Inviamo l'utente per aggiornare il punteggio
   });
 };
