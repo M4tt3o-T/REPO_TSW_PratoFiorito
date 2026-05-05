@@ -59,6 +59,10 @@ const VaiInventario = () => {
   router.push("/inventario")
 }
 
+const VaiClassifica = () => {
+  router.push("/classifica")
+}
+
 // Eseguita quando l'utente clicca "Inizia a Giocare!" nel modale
 const ConfermaCreazione = () => {
   // 1. Inventiamo un numero di stanza casuale
@@ -155,7 +159,7 @@ const storicoFiltrato = computed(() => {
       <button @click="VaiInventario">Inventario</button>
       <button @click="VaiShop">Shop</button>
       <button>Obiettivi</button>
-      <button>Classifica</button>
+      <button @click="VaiClassifica">Classifica</button>
     </div>
 
     <div v-if="mostraModale" class="modal-overlay">

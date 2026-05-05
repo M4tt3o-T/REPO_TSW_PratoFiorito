@@ -23,4 +23,5 @@ body {
   box-shadow: 5px 5px 30px rgb(0, 0, 0);
   border-radius: 10px;
   background-color: var(--bg-color);
+  border: 2px solid color-mix(in srgb, var(--bg-color), white 10%);
 }
