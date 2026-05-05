@@ -62,6 +62,29 @@
     }
   }
 
+  const aggiornaSaldo = async () => {
+    try {
+      const token = localStorage.getItem('token_campo_minato');
+      if (!token) return;
+
+      const response = await fetch(`${API_URL}/api/stats/me`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const dati = await response.json();
+        
+        // Aggiorniamo la valuta in memoria con quella fresca del DB
+        sessione.utente.valuta = dati.user.valuta;
+        
+        // Salviamo il dato aggiornato sul disco fisso per non perderlo
+        sessione.setUtente(sessione.utente);
+      }
+    } catch (err) {
+      console.error("Impossibile aggiornare il saldo:", err);
+    }
+  }
+
   // Logica di prova e ripristino
   const gestisciProva = (item) => {
     // Se stavamo già provando questo oggetto, lo ripristiniamo
@@ -157,6 +180,7 @@
       caricaShop();
       if (sessione.utente) {
           caricaOggettiAcquistati();
+          aggiornaSaldo();
       }
   });
 </script>

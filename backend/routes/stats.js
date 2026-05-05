@@ -25,16 +25,21 @@ router.get('/classifica', async (req, res) => {
       }
 });
 
-//Statistiche PERSONALI
-//Usiamo il middleware perché dobbiamo sapere chi è
+// Statistiche PERSONALI
+// Usiamo il middleware perché dobbiamo sapere chi è
 router.get('/me', auth, async (req, res) => {
     try {
-        //l'id viene estratto dal token
+        // l'id viene estratto dal token
         const idUser = req.user.id;
 
         const query = `
            SELECT username, email, valuta,
-           (SELECT COUNT(*) FROM partite WHERE id_vincitore = $1) as vittorie_totali
+           (
+               SELECT COUNT(*) 
+               FROM gioca_in g 
+               JOIN partite p ON g.id_partita = p.id_partita 
+               WHERE g.id_utente = $1 AND p.stato = 'vinta'
+           ) as vittorie_totali
            FROM utenti
            WHERE id_utente = $1
         `;
@@ -50,7 +55,7 @@ router.get('/me', auth, async (req, res) => {
             user: result.rows[0]
         });
     } catch (err) {
-        console.error(err);
+        console.error("Errore Dettagliato Profilo:", err);
         res.status(500).json({ success: false, error: "Errore nel recupero del profilo"});
     }
 });
