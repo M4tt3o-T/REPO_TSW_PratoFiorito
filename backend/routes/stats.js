@@ -3,25 +3,55 @@ const router = express.Router();
 const db = require('../db/index');
 const auth = require('../middleware/auth'); 
 
-//Classifca GLOBALE
+// Classifica globale
 router.get('/classifica', async (req, res) => {
       try {
+         // Prende utente, valuta, conta le partite finite e le vittorie
          const query = `
-         SELECT username, valuta
-         FROM utenti
-         ORDER BY valuta DESC
-         LIMIT 10
+             SELECT 
+                u.username AS nome, 
+                u.valuta AS punteggio,
+                COUNT(g.id_partita) AS n_partite,
+                COALESCE(SUM(CASE WHEN p.stato = 'vinta' THEN 1 ELSE 0 END), 0) AS vittorie
+             FROM utenti u
+             LEFT JOIN gioca_in g ON u.id_utente = g.id_utente
+             LEFT JOIN partite p ON g.id_partita = p.id_partita AND p.stato IN ('vinta', 'persa')
+             GROUP BY u.id_utente, u.username, u.valuta
+             ORDER BY u.valuta DESC
+             LIMIT 10
          `;
 
          const result = await db.query(query);
 
+         // Formattiamo i dati esattamente come se li aspetta il frontend
+         const classificaFormattata = result.rows.map(user => {
+             const partiteFinite = parseInt(user.n_partite);
+             const vittorie = parseInt(user.vittorie);
+             const sconfitte = partiteFinite - vittorie;
+             
+             // Calcolo del Ratio W/L (Vittorie diviso Sconfitte)
+             let ratio = "0.00";
+             if (sconfitte === 0 && vittorie > 0) {
+                 ratio = "100%"; // Imbattuto
+             } else if (sconfitte > 0) {
+                 ratio = (vittorie / sconfitte).toFixed(2);
+             }
+
+             return {
+                 nome: user.nome,
+                 punteggio: user.punteggio,
+                 n_partite: partiteFinite,
+                 ratio: ratio
+             };
+         });
+
          res.json({
             success: true,
-            classfica: result.rows
+            classifica: classificaFormattata // Nome corretto
          })
       } catch (err) {
           console.error(err);
-          res.status(500).json({ success: false, error: "Errore nel recupero della classfica"});
+          res.status(500).json({ success: false, error: "Errore nel recupero della classifica"});
       }
 });
 

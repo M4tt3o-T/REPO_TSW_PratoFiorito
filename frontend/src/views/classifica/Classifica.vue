@@ -1,18 +1,19 @@
 <script setup>
-
   import { ref, onMounted } from 'vue'
   const API_URL = import.meta.env.VITE_SOCKET_URL;
 
-  const listaClassifica=ref([])
+  const listaClassifica = ref([])
   const errore = ref(null)
 
   const caricaClassifica = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/classifica`)
+      const response = await fetch(`${API_URL}/api/stats/classifica`)
       if (!response.ok) throw new Error('Errore nel caricamento classifica')
+      
       const dati = await response.json()
-      listaClassifica.value = dati.items
-      console.log("Classifica caricata correttamente")
+      
+      listaClassifica.value = dati.classifica
+      console.log("Classifica caricata correttamente:", listaClassifica.value)
     } catch (err) {
       errore.value = err.message
       console.error(err)
@@ -20,7 +21,6 @@
   }
 
   onMounted(caricaClassifica)
-
 </script>
 
 <template>
@@ -28,19 +28,6 @@
   <div id="main">
     <div id="div_classifica" class="finestra">
       <h2>🏆 CLASSIFICA GLOBALE</h2>
-
-      <!-- Esempio Statico (Placeholder) -->
-      <div class="entry_classifica first_player">
-        <div class="div_nome_nPartite">
-          <span class="rank">#1</span>
-          <h3 class="nome">DarkAngelCraft</h3>
-          <span class="n_partite">Partite: <b>69</b></span>
-        </div>
-        <div class="div_punteggio_ratio">
-          <span class="punteggio">4200 <span>pt</span></span>
-          <span class="ratio">W/L: <b>0.69</b></span>
-        </div>
-      </div>
 
       <div v-for="(player, index) in listaClassifica" 
         :key="player.id" 
