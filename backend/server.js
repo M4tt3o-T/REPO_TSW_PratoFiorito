@@ -435,7 +435,7 @@ io.on('connection', (socket) => {
               for (let i = 1; i <= nuoveScoperte; i++) {
                   partita.celleScoperte++;
                   if (!clickIniziale){
-                      puntiGuadagnati += Math.sqrt(partita.celleScoperte) * partita.moltiplicatore;
+                      puntiGuadagnati += Math.log(partita.celleScoperte) * partita.moltiplicatore;
                   }
               }
               
