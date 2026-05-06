@@ -1,7 +1,8 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { sessione, notifica } from '../../ambiente.js';
+import { sessione, notifica} from '../../ambiente.js';
+import { socket } from '../../socket.js';
 
 // Recupera l'indirizzo (locale o online) dal file .env
 const API_URL = import.meta.env.VITE_SOCKET_URL;
@@ -43,6 +44,8 @@ const gestisciSignup = async () => {
     if (response.ok) {
       sessione.setUtente(dati.user); // Salviamo l'utente loggato
       localStorage.setItem('token_campo_minato', dati.token); // Salviamo il token di sicurezza
+      socket.auth = { token: dati.token };
+      socket.connect();
       router.push("/");
     } else {
       // 4. Gestione errori forniti dal backend

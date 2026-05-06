@@ -75,3 +75,29 @@ export const notifica = reactive({
     this.messaggio = '';
   }
 })
+
+// Popup per gli obiettivi
+export const toast = reactive({
+  titolo: '',
+  descrizione: '',
+  visibile: false,
+  timeout: null,
+  
+  mostra(tit, desc) {
+    this.titolo = tit;
+    this.descrizione = desc;
+    this.visibile = true;
+    
+    // Se c'era già un toast, resettiamo il timer
+    if (this.timeout) clearTimeout(this.timeout);
+    
+    // Scompare da solo dopo 5 secondi
+    this.timeout = setTimeout(() => {
+      this.chiudi();
+    }, 5000);
+  },
+  
+  chiudi() {
+    this.visibile = false;
+  }
+})

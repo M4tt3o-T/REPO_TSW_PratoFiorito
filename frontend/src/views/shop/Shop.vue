@@ -1,6 +1,7 @@
 <script setup>
   import { ref, onMounted, onUnmounted, computed, reactive } from 'vue'
   import { skin, sessione, notifica } from "../../ambiente.js"
+  import { socket } from '../../socket.js';
   const API_URL = import.meta.env.VITE_SOCKET_URL;
 
   const listaOggetti=ref([])
@@ -156,6 +157,9 @@
 
             // Equipaggiamo subito l'oggetto
             equipaggiaOggetto(item);
+
+            // Chiediamo al server di controllare gli obiettivi degli acquisti
+            socket.emit('aggiorna_progressione');
 
             notifica.mostra("Acquisto completato con successo!");
         } else {

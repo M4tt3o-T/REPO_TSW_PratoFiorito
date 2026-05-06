@@ -90,4 +90,50 @@ router.get('/me', auth, async (req, res) => {
     }
 });
 
+// Rotta per recuperare gli Obiettivi
+router.get('/obiettivi', auth, async (req, res) => {
+    try {
+        const idUser = req.user.id;
+
+        // Prende tutti i traguardi esistenti e, se l'utente li ha sbloccati, ci affianca la data di sblocco.
+        const query = `
+            SELECT 
+                t.id_traguardo, 
+                t.titolo, 
+                t.descrizione, 
+                r.data_sblocco
+            FROM traguardi t
+            LEFT JOIN raggiunto_da r ON t.id_traguardo = r.id_traguardo AND r.id_utente = $1
+            ORDER BY r.data_sblocco DESC NULLS LAST, t.id_traguardo ASC
+        `;
+
+        const result = await db.query(query, [idUser]);
+
+        const raggiunti = [];
+        const non_raggiunti = [];
+
+        // Dividiamo i risultati nei due array che il frontend si aspetta
+        result.rows.forEach(ob => {
+            if (ob.data_sblocco) {
+                // Formattiamo la data
+                const d = new Date(ob.data_sblocco);
+                ob.data_sblocco = d.toLocaleDateString('it-IT');
+                raggiunti.push(ob);
+            } else {
+                non_raggiunti.push(ob);
+            }
+        });
+
+        res.json({
+            success: true,
+            raggiunti: raggiunti,
+            non_raggiunti: non_raggiunti
+        });
+
+    } catch (err) {
+        console.error("Errore recupero obiettivi:", err);
+        res.status(500).json({ success: false, error: "Errore nel caricamento degli obiettivi" });
+    }
+});
+
 module.exports = router;

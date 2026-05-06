@@ -1,5 +1,7 @@
 <script setup>
   import { ref, onMounted } from 'vue'
+  import { socket } from '../../socket.js';
+  import { sessione } from '../../ambiente.js';
   const API_URL = import.meta.env.VITE_SOCKET_URL;
 
   const listaClassifica = ref([])
@@ -13,6 +15,14 @@
       const dati = await response.json()
       
       listaClassifica.value = dati.classifica
+
+      // Controlliamo se sei il primo in classifica
+      if (sessione.utente && listaClassifica.value.length > 0) {
+          if (listaClassifica.value[0].nome === sessione.utente.username) {
+              socket.emit('sblocca_singolo', 'reach_top_rank');
+          }
+      }
+
       console.log("Classifica caricata correttamente:", listaClassifica.value)
     } catch (err) {
       errore.value = err.message

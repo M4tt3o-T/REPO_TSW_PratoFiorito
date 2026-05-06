@@ -87,6 +87,98 @@ app.use('/api/shop', shopRoutes);
 io.on('connection', (socket) => {
   console.log(`Nuovo giocatore connesso! ID: ${socket.id}`);
 
+  // Inseriamo l'utente in una "Stanza Personale" basata sul suo ID DB.
+  socket.join(`utente_${socket.user.id}`);
+
+  // Funzione per gli obiettivi
+  const controllaObiettivo = async (idUtente, codiceSblocco) => {
+      try {
+          // Esiste questo obiettivo nel DB?
+          const resTraguardo = await db.query('SELECT id_traguardo, titolo, descrizione FROM traguardi WHERE codice_sblocco = $1', [codiceSblocco]);
+          if (resTraguardo.rows.length === 0) return; // Se non l'hai ancora creato nel DB, ignora
+          
+          const traguardo = resTraguardo.rows[0];
+
+          // Proviamo a segnarlo come raggiunto. 
+          const resInsert = await db.query(`
+              INSERT INTO raggiunto_da (id_utente, id_traguardo) 
+              VALUES ($1, $2) 
+              ON CONFLICT (id_utente, id_traguardo) DO NOTHING 
+              RETURNING *
+          `, [idUtente, traguardo.id_traguardo]);
+
+          // Se il DB ha inserito una nuova riga, l'ha appena sbloccato
+          if (resInsert.rows.length > 0) {
+              // Inviamo il toast direttamente nella sua stanza privata
+              io.to(`utente_${idUtente}`).emit('obiettivo_sbloccato', {
+                  titolo: traguardo.titolo,
+                  descrizione: traguardo.descrizione
+              });
+          }
+      } catch (err) {
+          console.error("Errore sblocco obiettivo:", err);
+      }
+  };
+
+  // Motore di progressione
+  const aggiornaProgressione = async (idUtente) => {
+      try {
+          // 1. Calcoliamo tutte le statistiche dell'utente in un colpo solo
+          const statsQuery = `
+              SELECT 
+                  u.valuta,
+                  (SELECT COUNT(*) FROM gioca_in g JOIN partite p ON g.id_partita = p.id_partita WHERE g.id_utente = u.id_utente AND p.stato = 'vinta') as vittorie,
+                  (SELECT COUNT(*) FROM gioca_in g JOIN partite p ON g.id_partita = p.id_partita WHERE g.id_utente = u.id_utente AND p.stato = 'persa') as sconfitte,
+                  (SELECT COUNT(*) FROM inventario WHERE id_utente = u.id_utente) as oggetti
+              FROM utenti u WHERE u.id_utente = $1
+          `;
+          const resStats = await db.query(statsQuery, [idUtente]);
+          if (resStats.rows.length === 0) return;
+          
+          const stats = resStats.rows[0];
+          const partiteTotali = parseInt(stats.vittorie) + parseInt(stats.sconfitte);
+
+          // 2. Prendiamo tutti i traguardi dal DB
+          const resTraguardi = await db.query('SELECT * FROM traguardi');
+          
+          // 3. Controlliamo cosa ha superato
+          for (let t of resTraguardi.rows) {
+              let sbloccato = false;
+              
+              if (t.codice_sblocco.startsWith('win_') && parseInt(stats.vittorie) >= t.requisito_valore) sbloccato = true;
+              if (t.codice_sblocco.startsWith('lose_') && parseInt(stats.sconfitte) >= t.requisito_valore) sbloccato = true;
+              if (t.codice_sblocco.startsWith('play_') && partiteTotali >= t.requisito_valore) sbloccato = true;
+              if (t.codice_sblocco.startsWith('get_') && parseInt(stats.valuta) >= t.requisito_valore) sbloccato = true;
+              if (t.codice_sblocco.startsWith('buy_') && parseInt(stats.oggetti) >= t.requisito_valore) sbloccato = true;
+
+              if (sbloccato) {
+                  // Proviamo a inserirlo (fallisce in automatico se lo ha già)
+                  const resInsert = await db.query(`
+                      INSERT INTO raggiunto_da (id_utente, id_traguardo) 
+                      VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING *
+                  `, [idUtente, t.id_traguardo]);
+
+                  if (resInsert.rows.length > 0) {
+                      io.to(`utente_${idUtente}`).emit('obiettivo_sbloccato', {
+                          titolo: t.titolo, descrizione: t.descrizione
+                      });
+                  }
+              }
+          }
+      } catch (err) {
+          console.error("Errore aggiornamento progressione:", err);
+      }
+  };
+
+  // Listener per i trigger dal frontend
+  socket.on('sblocca_singolo', (codice) => controllaObiettivo(socket.user.id, codice));
+  socket.on('aggiorna_progressione', () => aggiornaProgressione(socket.user.id));
+
+  // Trigger: Appena entra, diamo il Benvenuto
+  controllaObiettivo(socket.user.id, 'crea_account');
+  // Trigger globale al login: Scansiona tutto il profilo per assegnare obiettivi retroattivi
+  aggiornaProgressione(socket.user.id);
+
   // 1. L'utente chiede di entrare/creare una partita
   socket.on('unisciti_partita', async (dati) => {
       const { idPartita, username, idUtente, azione } = dati;
@@ -287,7 +379,7 @@ io.on('connection', (socket) => {
       if (partita.grid[y][x].isMine) {
         // Sveliamo tutte le mine sulla griglia
         gameLogic.revealAllMines(partita.grid);
-        // -- AGGIORNAMENTO STATO "PERSA" NEL DB --
+        // Aggiornamento stato 'persa' nel db
         try {
             // Nessun bonus, trasferiamo semplicemente i punti accumulati fino a quel momento
             await db.query(`
@@ -301,6 +393,9 @@ io.on('connection', (socket) => {
                 'UPDATE partite SET stato = $1, data_fine = NOW(), mappa_config = $2 WHERE id_partita = $3',
                 ['persa', JSON.stringify(partita.grid), partita.uuid]
             );
+
+            // Sblocca progressioni sconfitta per tutti
+            Object.keys(partita.giocatori).forEach(idGioc => aggiornaProgressione(idGioc));
 
             // Recuperiamo la classifica della partita appena finita
             const resClassifica = await db.query(`
@@ -364,7 +459,7 @@ io.on('connection', (socket) => {
     // C. Controlliamo se questa mossa lo ha fatto vincere
     if (gameLogic.checkWin(partita.grid, partita.totalMines)) {
       const bonusVittoria = Math.round(partita.size * partita.size * partita.moltiplicatore);
-      // --Operazione DB: Chiudiamo la partita
+      // Operazione DB: Chiudiamo la partita
       try {
           // 1. Diamo il bonus a TUTTI i giocatori della partita
           await db.query(
@@ -385,6 +480,9 @@ io.on('connection', (socket) => {
               'UPDATE partite SET stato = $1, data_fine = NOW(), mappa_config = $2 WHERE id_partita = $3',
               ['vinta', JSON.stringify(partita.grid), partita.uuid]
           );
+
+          // Sblocca progressioni vittoria per tutti
+          Object.keys(partita.giocatori).forEach(idGioc => aggiornaProgressione(idGioc));
 
           // Recuperiamo la classifica della partita appena finita
             const resClassifica = await db.query(`

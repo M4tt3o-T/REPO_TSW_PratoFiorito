@@ -150,8 +150,9 @@ onMounted(() => {
 
 // Resettiamo le notifiche quando si apre la chat
 const apriChat = () => {
-  chatAperta.value = true;
+  chatAperta.value = !chatAperta.value;
   notificheChat.value = 0;
+  if (chatAperta.value) socket.emit('sblocca_singolo', 'open_chat');
 };
 
 // Funzione legata al bottone del popup
@@ -237,7 +238,7 @@ const mettiBandierina = (x, y) => {
       </div>
     </div>
 
-    <button id="btn-chat" @click="chatAperta = !chatAperta">
+    <button id="btn-chat" @click="apriChat">
       💬 Chat
       <span v-if="notificheChat > 0" class="badge-notifica">{{ notificheChat }}</span>
     </button>
