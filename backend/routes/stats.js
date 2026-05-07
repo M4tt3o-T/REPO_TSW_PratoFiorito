@@ -12,8 +12,8 @@ router.get("/classifica", async (req, res) => {
                 u.username AS nome, 
                 u.valuta AS punteggio,
                 COUNT(g.id_partita) AS n_partite,
-                COALESCE(SUM(CASE WHEN p.stato = 'vinta' THEN 1 ELSE 0 END), 0) AS vittorie
-                COALESCE(SUM(EXTRACT(EPOCH FROM (p.data_fine - p.data_creazione))), 0) AS tempo_totale
+                COALESCE(SUM(CASE WHEN p.stato = 'vinta' THEN 1 ELSE 0 END), 0) AS vittorie,
+                COALESCE(SUM(g.secondi_giocati), 0) AS tempo_totale
              FROM utenti u
              LEFT JOIN gioca_in g ON u.id_utente = g.id_utente
              LEFT JOIN partite p ON g.id_partita = p.id_partita AND p.stato IN ('vinta', 'persa')
@@ -143,12 +143,10 @@ router.get("/obiettivi", auth, async (req, res) => {
     });
   } catch (err) {
     console.error("Errore recupero obiettivi:", err);
-    res
-      .status(500)
-      .json({
-        success: false,
-        error: "Errore nel caricamento degli obiettivi",
-      });
+    res.status(500).json({
+      success: false,
+      error: "Errore nel caricamento degli obiettivi",
+    });
   }
 });
 
