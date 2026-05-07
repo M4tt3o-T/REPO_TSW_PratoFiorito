@@ -245,10 +245,10 @@ const scopriCella = (x, y) => {
     // Se sappiamo già che c'è una mina, non suoniamo il rumorino "scopri".
     // Lasciamo spazio al suono dell'esplosione che arriverà dal server un istante dopo.
     if (!griglia.value[y][x].isMine) {
-      sfx.play('scopri')
+      sfx.play('scopri.wav')
     }
   } else {
-    sfx.play('bandierina')
+    sfx.play('bandierina.wav')
   }
 
   // Il client invia solo la mossa al server
