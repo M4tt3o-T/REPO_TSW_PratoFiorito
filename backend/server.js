@@ -15,37 +15,15 @@ const authMidWare = require("./middleware/auth");
 const app = express();
 
 const corsOptions = {
-  origin: ["https://minesweepermmo.netlify.app", "http://localhost:5173"],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Aggiungiamo esplicitamente OPTIONS
-  credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"], // Necessario se invii JSON!
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 
 const server = http.createServer(app);
 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-
-  // Accettiamo dinamicamente chiunque ci stia chiamando (Netlify, Localhost, ecc.)
-  if (origin) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  } else {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-  }
-
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS",
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
-
-  next();
-});
+// Usiamo il pacchetto ufficiale 'cors' al posto del middleware manuale
+app.use(cors(corsOptions));
 // Permette a express di leggere il corpo delle richieste POST (JSON)
 app.use(express.json());
 // Dice a Express di servire i file della cartella frontend
