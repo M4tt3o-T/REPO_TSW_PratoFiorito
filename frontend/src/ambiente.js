@@ -114,11 +114,92 @@ export const sfx = reactive({
     if (!this.attivo) return
 
     // Istanziamento rapido: permette a più suoni uguali di sovrapporsi se clicchi veloce
-    const audio = new Audio(`/audio/${nomeSuono}`)
+    const audio = new Audio(`/audio/effetti/${nomeSuono}`)
     audio.volume = this.volumeGenerale
 
     // Il catch intercetta l'errore che i browser danno se provi a far partire
     // un audio prima che l'utente abbia interagito con la pagina
     audio.play().catch((err) => console.warn('Riproduzione audio bloccata dal browser', err))
   },
+})
+
+// Creiamo l'elemento audio fuori dalla reattività per evitare conflitti con Vue
+const audioElement = new Audio()
+audioElement.volume = 0.3
+
+// Jukebox Globale
+export const playerMusicale = reactive({
+  tracciaAttuale: null,
+  inRiproduzione: false,
+  progresso: 0,
+  durata: 0,
+  libreria: [], // Conterrà le canzoni acquistate
+
+  impostaLibreria(inventarioCompleto) {
+    this.libreria = inventarioCompleto.filter((item) => item.tipo === 'musica')
+  },
+
+  // Carica i brani dal database
+  async aggiornaLibreria() {
+    const token = localStorage.getItem('token_campo_minato')
+    if (!token) return
+
+    try {
+      const API_URL = import.meta.env.VITE_SOCKET_URL
+      const res = await fetch(`${API_URL}/api/shop/mio`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        const dati = await res.json()
+        this.impostaLibreria(dati.inventario)
+        console.log('Libreria musicale aggiornata!')
+      }
+    } catch (err) {
+      console.error('Errore refresh libreria musicale:', err)
+    }
+  },
+
+  caricaTraccia(traccia) {
+    if (!traccia) return
+    this.tracciaAttuale = traccia
+    audioElement.src = traccia.asset_url // es: '/audio/canzone1.mp3'
+    audioElement.load()
+    this.play()
+  },
+
+  play() {
+    if (!this.tracciaAttuale) return
+    audioElement
+      .play()
+      .then(() => {
+        this.inRiproduzione = true
+      })
+      .catch((err) => console.warn('Riproduzione bloccata', err))
+  },
+
+  pausa() {
+    audioElement.pause()
+    this.inRiproduzione = false
+  },
+
+  toggle() {
+    if (this.inRiproduzione) this.pausa()
+    else this.play()
+  },
+
+  cambiaTempo(nuovoTempo) {
+    audioElement.currentTime = nuovoTempo
+    this.progresso = nuovoTempo
+  },
+})
+
+// Ascoltatori nativi del browser per la barra di avanzamento
+audioElement.addEventListener('timeupdate', () => {
+  playerMusicale.progresso = audioElement.currentTime
+})
+audioElement.addEventListener('loadedmetadata', () => {
+  playerMusicale.durata = audioElement.duration
+})
+audioElement.addEventListener('ended', () => {
+  playerMusicale.inRiproduzione = false // Ferma l'icona play/pausa a fine canzone
 })

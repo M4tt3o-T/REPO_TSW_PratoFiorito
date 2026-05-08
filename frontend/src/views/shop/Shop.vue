@@ -1,12 +1,13 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, reactive } from 'vue'
-import { skin, sessione, notifica } from '../../ambiente.js'
+import { skin, sessione, notifica, playerMusicale } from '../../ambiente.js'
 import { socket } from '../../socket.js'
 import Loading from '../../components/Loading.vue'
 import Errore from '../../components/Errore.vue'
 import SlotShopTema from '../../components/SlotShopTema.vue'
 import SlotShopSfondo from '../../components/SlotShopSfondo.vue'
 import SlotShopIcona from '../../components/SlotShopIcona.vue'
+import SlotShopMusica from '../../components/SlotShopMusica.vue'
 
 const API_URL = import.meta.env.VITE_SOCKET_URL
 
@@ -18,6 +19,7 @@ const caricamento = ref(false)
 const temi = computed(() => listaOggetti.value.filter((p) => p.tipo === 'tema'))
 const sfondi = computed(() => listaOggetti.value.filter((p) => p.tipo === 'sfondo'))
 const icone = computed(() => listaOggetti.value.filter((p) => p.tipo === 'icona'))
+const musiche = computed(() => listaOggetti.value.filter((p) => p.tipo === 'musica'))
 
 // Inizializziamo lo stato originale dell'utente
 const statoOriginale = reactive({
@@ -31,7 +33,12 @@ const inProva = reactive({
   tema: null,
   sfondo: null,
   icona: null,
+  musica: null,
 })
+
+// Il lettore audio usa e getta per le anteprime dello Shop
+const audioAnteprima = new Audio()
+audioAnteprima.volume = 0.5
 
 const caricaOggettiAcquistati = async () => {
   caricamento.value = true
@@ -101,6 +108,34 @@ const aggiornaSaldo = async () => {
 
 // Logica di prova e ripristino
 const gestisciProva = (item) => {
+  // Logica speciale per la musica
+  if (item.tipo === 'musica') {
+    if (inProva.musica === item.id_oggetto) {
+      ripristina('musica') // Se era già in play, lo stoppiamo
+    } else {
+      ripristina('musica') // Fermiamo eventuali altre anteprime in corso
+
+      // Mettiamo in pausa il Jukebox globale nell'Header se stava suonando
+      if (playerMusicale.inRiproduzione) playerMusicale.pausa()
+
+      inProva.musica = item.id_oggetto
+      audioAnteprima.src = item.asset_url
+      audioAnteprima.currentTime = 0
+      audioAnteprima.play().catch((err) => console.warn(err))
+
+      // Controlliamo il timer ogni frazione di secondo
+      audioAnteprima.ontimeupdate = () => {
+        if (audioAnteprima.currentTime >= 10) {
+          ripristina('musica') // Raggiunti i 10 secondi, spegniamo tutto
+        }
+      }
+
+      // Nel caso in cui la traccia duri meno di 10 secondi
+      audioAnteprima.onended = () => ripristina('musica')
+    }
+    return // Usciamo dalla funzione per non far scattare il codice di Temi/Sfondi
+  }
+
   // Se stavamo già provando questo oggetto, lo ripristiniamo
   if (inProva[item.tipo] === item.id_oggetto) {
     ripristina(item.tipo)
@@ -115,6 +150,12 @@ const gestisciProva = (item) => {
 
 const ripristina = (tipo) => {
   inProva[tipo] = null // Rimuoviamo lo stato di prova
+  if (tipo === 'musica') {
+    audioAnteprima.pause()
+    audioAnteprima.currentTime = 0
+    audioAnteprima.ontimeupdate = null
+    return
+  }
   if (tipo === 'tema') skin.cambiaTema(statoOriginale.tema)
   if (tipo === 'sfondo') skin.cambiaSfondo(statoOriginale.sfondo)
   if (tipo === 'icona') skin.cambiaIcona(statoOriginale.icona)
@@ -174,6 +215,11 @@ const effettuaAcquisto = async (item) => {
       // Chiediamo al server di controllare gli obiettivi degli acquisti
       socket.emit('aggiorna_progressione')
 
+      // Se l'oggetto comprato è musica, aggiorna il player nell'header
+      if (item.tipo === 'musica') {
+        playerMusicale.aggiornaLibreria()
+      }
+
       notifica.mostra('Acquisto completato con successo!')
     } else {
       // Se il server ha bloccato l'acquisto
@@ -191,6 +237,7 @@ onUnmounted(() => {
   if (inProva.tema) ripristina('tema')
   if (inProva.sfondo) ripristina('sfondo')
   if (inProva.icona) ripristina('icona')
+  if (inProva.musica) ripristina('musica')
 })
 
 const avvioShop = async () => {
@@ -203,12 +250,10 @@ const avvioShop = async () => {
 }
 
 onMounted(avvioShop)
-
 </script>
 
 <template>
   <div id="main">
-
     <Loading v-if="caricamento" messaggio="Caricamento shop..."></Loading>
 
     <Errore v-else-if="errore" :messaggio="errore" @riprova="avvioShop"></Errore>
@@ -222,24 +267,22 @@ onMounted(avvioShop)
       <div id="div_temi">
         <h2>Temi:</h2>
         <div class="riga_oggetti">
-
-          <SlotShopTema 
-            v-for="item in temi" 
-            :item="item" 
-            :listaAcquisti="listaAcquisti" 
+          <SlotShopTema
+            v-for="item in temi"
+            :item="item"
+            :listaAcquisti="listaAcquisti"
             :inProva="inProva"
-            @prova="gestisciProva" 
-            @equipaggia="equipaggiaOggetto" 
-            @acquisto="effettuaAcquisto">
+            @prova="gestisciProva"
+            @equipaggia="equipaggiaOggetto"
+            @acquisto="effettuaAcquisto"
+          >
           </SlotShopTema>
-          
         </div>
       </div>
 
       <div id="div_sfondi">
         <h2>Sfondi:</h2>
         <div class="riga_oggetti">
-          
           <SlotShopSfondo
             v-for="item in sfondi"
             :item="item"
@@ -247,16 +290,15 @@ onMounted(avvioShop)
             :inProva="inProva"
             @prova="gestisciProva"
             @equipaggia="equipaggiaOggetto"
-            @acquisto="effettuaAcquisto">
+            @acquisto="effettuaAcquisto"
+          >
           </SlotShopSfondo>
-
         </div>
       </div>
 
       <div id="div_icone">
         <h2>Icone:</h2>
         <div class="riga_oggetti">
-          
           <SlotShopIcona
             v-for="item in icone"
             :item="item"
@@ -264,9 +306,24 @@ onMounted(avvioShop)
             :inProva="inProva"
             @prova="gestisciProva"
             @equipaggia="equipaggiaOggetto"
-            @acquisto="effettuaAcquisto">
+            @acquisto="effettuaAcquisto"
+          >
           </SlotShopIcona>
+        </div>
+      </div>
 
+      <div id="div_musiche">
+        <h2>Tracce Musicali:</h2>
+        <div class="riga_oggetti">
+          <SlotShopMusica
+            v-for="item in musiche"
+            :item="item"
+            :listaAcquisti="listaAcquisti"
+            :inProva="inProva"
+            @prova="gestisciProva"
+            @acquisto="effettuaAcquisto"
+          >
+          </SlotShopMusica>
         </div>
       </div>
     </div>
@@ -288,7 +345,9 @@ onMounted(avvioShop)
   padding: 10px;
   width: 100%;
 }
-#div_temi, #div_sfondi, #div_icone {
+#div_temi,
+#div_sfondi,
+#div_icone {
   margin: 10px 10px;
   padding: 10px 10px 0 10px;
   border-radius: 5px;
@@ -305,7 +364,6 @@ onMounted(avvioShop)
   margin-bottom: 2dvh;
   padding-bottom: 2dvh;
 }
-
 
 @media only screen and (max-width: 800px) {
   .anteprima {
