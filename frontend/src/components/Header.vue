@@ -76,9 +76,13 @@ const formattaTempo = (secondi) => {
 
 <template>
   <div id="main-header">
-    <label @click="TornaHome" style="cursor: pointer">MineSweeperMMO</label>
 
-    <div id="player-musicale" v-if="sessione.utente">
+    <picture>
+      <source media="(max-width: 800px)" srcset="/logo_sml.png">
+      <img  src="/logo.png" alt="MinesweeperMMO Logo" @click="TornaHome" style="cursor: pointer" height="80px" />
+    </picture>
+
+    <div id="div_player" v-if="sessione.utente">
       <template v-if="playerMusicale.libreria.length > 0">
         <select @change="gestisciCambioTraccia" class="select-traccia">
           <option value="" disabled :selected="!playerMusicale.tracciaAttuale">
@@ -128,7 +132,7 @@ const formattaTempo = (secondi) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1% 2%;
+  padding: 10px 20px;
   font-size: 2.5vh;
   background: linear-gradient(var(--bg-color), color-mix(in srgb, var(--bg-color), black 20%));
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -164,7 +168,7 @@ const formattaTempo = (secondi) => {
 }
 
 /* Stili del player musicale */
-#player-musicale {
+#div_player {
   display: flex;
   flex-direction: column;
   align-items: center;
