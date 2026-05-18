@@ -141,7 +141,7 @@ h3 {
   color: color-mix(in srgb, var(--bg-color), black 60%);
 }
 
-@media (max-width: 800px) {
+@media only screen and (max-width: 800px) {
   #div_obiettivi {
     width: 80%;
     padding: 15px;

@@ -334,7 +334,7 @@ watch(
 }
 
 .btn-visualizza-risultati {
-  background-color: #9b59b6;
+  background-color: var(--bg-color);
   color: white;
   border: none;
   padding: 8px 12px;
@@ -373,6 +373,7 @@ watch(
   cursor: pointer;
   z-index: 1000;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0); /* per fare in modo che se cliccato da mobile non si illumina di blu */
 }
 
 .badge-notifica {
@@ -388,7 +389,7 @@ watch(
 
 #sidebar-feed {
   position: fixed;
-  top: 0;
+  top: 115px;
   right: -350px;
   width: 350px;
   height: 100vh;
@@ -409,7 +410,7 @@ watch(
   justify-content: space-between;
   align-items: center;
   padding: 15px;
-  background-color: #333;
+  background-color: #444;
   color: white;
 }
 
@@ -435,7 +436,7 @@ watch(
   padding: 10px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #333;
+  border-left: 4px solid #444;
 }
 
 .annuncio-card p {
@@ -483,5 +484,17 @@ watch(
 }
 .btn-entra-invito:hover {
   filter: brightness(1.1);
+}
+
+@media only screen and (max-width : 800px) {
+  #btn-feed {
+    bottom: 10px;
+    right : 10px;
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
+  #sidebar-feed {
+    width: 250px;
+  }
 }
 </style>

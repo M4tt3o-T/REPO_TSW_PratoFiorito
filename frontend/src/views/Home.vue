@@ -505,12 +505,13 @@ const storicoFiltrato = computed(() => {
 /* Stili del modale storico */
 
 .modal-content {
+  box-sizing: border-box;
   background-color: #222222;
   padding: 30px;
-  border-radius: 12px;
+  border-radius: 10px;
   text-align: center;
   color: white;
-  min-width: 350px;
+  margin-top: 20vh;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9);
   scrollbar-color: color-mix(in srgb, var(--bg-color), #141414 80%)
     color-mix(in srgb, var(--bg-color), #3d3d3d 80%);
@@ -623,4 +624,12 @@ const storicoFiltrato = computed(() => {
 .btn-chiudi:hover {
  background-color: color-mix(in srgb, var(--bg-color), black 40%);
 }
+
+@media only screen and (max-width:800px) {
+  .storico-modal {
+    min-width: 0px;
+    max-width: 95vw;
+  }
+}
+
 </style>

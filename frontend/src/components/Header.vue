@@ -210,12 +210,12 @@ const formattaTempo = (secondi) => {
 }
 
 #div_nome_icona {
-    margin : 5px 0px 5px;
-    padding: 5px 10px;
-    border-radius: 10px;
-    background-color: color-mix(in srgb, var(--bg-color), white 20%);
-    cursor: pointer;
-  }
+  margin : 5px 0px 5px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background-color: color-mix(in srgb, var(--bg-color), white 20%);
+  cursor: pointer;
+}
 
 .nome-profilo {
   font-weight: bold;

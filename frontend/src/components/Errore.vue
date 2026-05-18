@@ -28,6 +28,7 @@
         align-items: center;
         padding: 10px 40px 30px;
         height:160px;
+        overflow: hidden;
     }
     #icona_errore { font-size: 3rem; }
     #bottone_riprova {

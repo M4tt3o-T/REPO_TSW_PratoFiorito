@@ -202,12 +202,8 @@ const apriChat = () => {
   chatAperta.value = !chatAperta.value
   notificheChat.value = 0
 
-  const btnFeed = document.getElementById('btn-feed')
   if (chatAperta.value) {
     socket.emit('sblocca_singolo', 'open_chat')
-    if (btnFeed) btnFeed.style.display = 'none' // Nascondi
-  } else {
-    if (btnFeed) btnFeed.style.display = 'block' // Mostra
   }
 }
 
@@ -226,9 +222,6 @@ onUnmounted(() => {
       idUtente: sessione.utente.id_utente,
     })
   }
-
-  const btnFeed = document.getElementById('btn-feed')
-  if (btnFeed) btnFeed.style.display = 'block'
 
   // Rimuovere i "listener" quando l'utente cambia pagina.
   // Altrimenti, tornando su questa pagina, avremmo eventi duplicati in ascolto.
@@ -404,37 +397,41 @@ const mettiBandierina = (x, y) => {
       <span v-if="notificheChat > 0" class="badge-notifica">{{ notificheChat }}</span>
     </button>
 
-    <div id="sidebar-chat" :class="{ aperta: chatAperta }">
-      <div class="header-chat">
-        <h3>Chat Stanza {{ idStanza }}</h3>
-        <button @click="chatAperta = false">X</button>
-      </div>
+    <Teleport to="body">  <!--  Senza il teleport era impossibile sovrapporsi al bottone del feed -->
+      <div id="sidebar-chat" :class="{ aperta: chatAperta }">
+        <div class="header-chat">
+          <h3>Chat Stanza {{ idStanza }}</h3>
+          <button @click="chatAperta = false" id="btn-chiudiChat">X</button>
+        </div>
 
-      <div class="area-messaggi">
-        <div v-for="(msg, index) in storicoChat" :key="index" class="messaggio">
-          <span class="ora">[{{ msg.ora }}]</span>
+        <div class="area-messaggi">
+          <div v-for="(msg, index) in storicoChat" :key="index" class="messaggio">
+            <span class="ora">[{{ msg.ora }}]</span>
 
-          <span class="icona-chat">{{ msg.icona || '🎭' }}</span>
+            <span class="icona-chat">{{ msg.icona || '🎭' }}</span>
 
-          <strong :class="{ 'mio-messaggio': msg.autore === sessione.utente.username }"
-            >{{ msg.autore }}:</strong
-          >
-          {{ msg.testo }}
+            <strong :class="{ 'mio-messaggio': msg.autore === sessione.utente.username }"
+              >{{ msg.autore }}:</strong
+            >
+            {{ msg.testo }}
+          </div>
+        </div>
+
+        <div class="input-chat">
+          <input
+            v-model="nuovoMessaggio"
+            type="text"
+            placeholder="Scrivi qui..."
+            @keyup.enter="inviaMessaggio"
+          />
+          <button @click="inviaMessaggio">Invia</button>
         </div>
       </div>
-
-      <div class="input-chat">
-        <input
-          v-model="nuovoMessaggio"
-          type="text"
-          placeholder="Scrivi qui..."
-          @keyup.enter="inviaMessaggio"
-        />
-        <button @click="inviaMessaggio">Invia</button>
-      </div>
-    </div>
+    </Teleport>
+    
   </div>
 
+  <!-- ------------------RESOCONTO PARTITA--------------- -->
   <div v-if="modalVisibile" class="modal-overlay">
     <div class="modal-content">
       <h2 v-if="datiFinePartita.esito === 'vittoria' || datiFinePartita.esito === 'vinta'">
@@ -574,21 +571,22 @@ const mettiBandierina = (x, y) => {
   border: none;
   cursor: pointer;
   z-index: 99;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0); /* per fare in modo che se cliccato da mobile non si illumina di blu */
 }
 
 /* La barra laterale */
 #sidebar-chat {
   position: fixed;
-  top: 0;
+  top: 115px;
   right: -350px; /* Nascosta fuori dallo schermo di default */
+  bottom: 0;
   width: 350px;
-  height: 100vh;
   background-color: #f9f9f9;
   box-shadow: -5px 0 15px rgba(0, 0, 0, 0.2);
   transition: right 0.3s ease-in-out;
   display: flex;
   flex-direction: column;
-  z-index: 1000;
+  z-index: 1001;
 }
 
 /* Classe dinamica applicata da Vue per farla apparire */
@@ -605,8 +603,15 @@ const mettiBandierina = (x, y) => {
   color: white;
 }
 
+#btn-chiudiChat {
+  border : none;
+  padding : 3px;
+  border-radius: 15px;
+  font-weight : bold;
+}
+
 .area-messaggi {
-  flex: 1; /* Prende tutto lo spazio verticale disponibile */
+  flex: 1;
   padding: 15px;
   overflow-y: auto; /* Aggiunge la barra di scorrimento se ci sono troppi messaggi */
   display: flex;
@@ -827,4 +832,17 @@ const mettiBandierina = (x, y) => {
   cursor: pointer;
   font-weight: bold;
 }
+
+@media only screen and (max-width : 800px) {
+  #btn-chat {
+    bottom: 60px;
+    right: 10px;
+    padding: 10px 15px;
+    font-size: 1rem;
+  }
+  #sidebar-chat {
+    width : 250px;
+  }
+}
+
 </style>
